@@ -11,7 +11,7 @@ import (
 type MessageHeader struct {
 	ID string `json:"id"`
 	EventName string `json:"event_name"`
-	OccurredAt string `json:"occured_at"`
+	OccurredAt string `json:"occurred_at"`
 }
 
 type ProductOutOfStock struct {
