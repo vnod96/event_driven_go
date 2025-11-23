@@ -26,7 +26,6 @@ func main() {
 		fmt.Printf("failed to start publisher: %v", err)
 	}
 
-
 	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client: rc,
 	}, logger)
@@ -35,7 +34,6 @@ func main() {
 		fmt.Printf("failed to start subscriber: %v", err)
 	}
 
-
 	messages, err := sub.Subscribe(context.Background(), "progress")
 
 	if err != nil {
@@ -43,12 +41,13 @@ func main() {
 	}
 
 	logger.Info("subscriber started.", nil)
+	go func() {
 
-	for msg:= range messages {
-		val := string(msg.Payload)
-		fmt.Printf("Message ID: %s - %s\n", msg.UUID, val)
-		msg.Ack()
-	}
+		for msg := range messages {
+			val := string(msg.Payload)
+			fmt.Printf("Message ID: %s - %s\n", msg.UUID, val)
+			msg.Ack()
+		}
 
 	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
 	if err != nil {
