@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	ticketsHttp "tickets/http"
+	"tickets/message"
 	"tickets/worker"
 )
 
@@ -19,10 +20,10 @@ func New(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
 ) Service {
-	w := worker.NewWorker(spreadsheetsAPI, receiptsService)
-	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w)
+	w := message.NewPubSubWorker(spreadsheetsAPI, receiptsService)
+	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w.Pub)
 
-	go w.Run(context.Background())
+	go w.Run()
 
 	return Service{
 		echoRouter: echoRouter,
