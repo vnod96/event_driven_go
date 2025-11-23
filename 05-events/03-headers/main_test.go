@@ -53,7 +53,7 @@ func Test(t *testing.T) {
 		fmt.Println(string(msg.Payload))
 		var event productOutOfStock
 		err := json.Unmarshal(msg.Payload, &event)
-		fmt.Printf("%v", event.Header.ID)
+		fmt.Printf("Header ID: %v", event.Header.OccurredAt)
 		require.NoError(t, err)
 
 		assert.NotEmpty(t, event.Header.ID)
