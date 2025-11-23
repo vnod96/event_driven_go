@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	stdHTTP "net/http"
-	"os"
-	"os/signal"
 
 	"github.com/ThreeDotsLabs/watermill"
 	watermillMsg "github.com/ThreeDotsLabs/watermill/message"
@@ -40,8 +38,6 @@ func New(
 }
 
 func (s Service) Run(ctx context.Context) error {
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -61,12 +57,8 @@ func (s Service) Run(ctx context.Context) error {
 	g.Go(func() error {
 		// Shut down the HTTP server
 		<-ctx.Done()
-		return s.echoRouter.Shutdown(ctx)
+		return s.echoRouter.Shutdown(context.Background())
 	})
 
-	err := g.Wait()
-	if err != nil {
-		return err
-	}
-	return nil
+	return g.Wait()
 }

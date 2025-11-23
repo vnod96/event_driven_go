@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"os/signal"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/clients"
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
@@ -27,11 +28,14 @@ func main() {
 	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
 	defer redisClient.Close()
 	
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	err = service.New(
 		spreadsheetsAPI,
 		receiptsService,
 		redisClient,
-	).Run(context.Background())
+	).Run(ctx)
 	if err != nil {
 		panic(err)
 	}
