@@ -95,7 +95,7 @@ func (w *PubSubWorker) Run() error {
 
 		for msg := range messages {
 			tktId := string(msg.Payload)
-			err := w.spreadsheetsAPI.AppendRow(msg.Context(), "ticket-to-print", []string{tktId})
+			err := w.spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{tktId})
 			if err != nil {
 				w.logger.Error("failed to append to tracker", err, nil)
 				msg.Nack()
