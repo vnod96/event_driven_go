@@ -26,14 +26,6 @@ func main() {
 		fmt.Printf("failed to start publisher: %v", err)
 	}
 
-	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
-	if err != nil {
-		fmt.Printf("failed to publish msg: %v", err)
-	}
-	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("100")))
-	if err != nil {
-		fmt.Printf("failed to publish msg: %v", err)
-	}
 
 	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client: rc,
@@ -57,4 +49,12 @@ func main() {
 		msg.Ack()
 	}
 
+	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
+	if err != nil {
+		fmt.Printf("failed to publish msg: %v", err)
+	}
+	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("100")))
+	if err != nil {
+		fmt.Printf("failed to publish msg: %v", err)
+	}
 }
