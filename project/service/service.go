@@ -6,6 +6,7 @@ import (
 	stdHTTP "net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 
 	ticketsHttp "tickets/http"
 	"tickets/message"
@@ -19,6 +20,7 @@ type Service struct {
 func New(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
+	redisClient *redis.Client,
 ) Service {
 	w := message.NewPubSubWorker(spreadsheetsAPI, receiptsService)
 	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w.Pub)
