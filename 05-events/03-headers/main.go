@@ -45,6 +45,7 @@ func NewPublisher(pub message.Publisher) Publisher {
 
 func (p Publisher) PublishProductOutOfStock(productID string) error {
 	event := ProductOutOfStock{
+		Header: NewMessageHeader("ProductOutOfStock"),
 		ProductID: productID,
 	}
 
@@ -60,6 +61,7 @@ func (p Publisher) PublishProductOutOfStock(productID string) error {
 
 func (p Publisher) PublishProductBackInStock(productID string, quantity int) error {
 	event := ProductBackInStock{
+		Header: NewMessageHeader("ProductBackInStock"),
 		ProductID: productID,
 		Quantity:  quantity,
 	}
