@@ -41,13 +41,15 @@ func main() {
 	}
 
 	logger.Info("subscriber started.", nil)
-	go func() {
 
 		for msg := range messages {
 			val := string(msg.Payload)
 			fmt.Printf("Message ID: %s - %s\n", msg.UUID, val)
 			msg.Ack()
 		}
+
+		go func() {
+			
 
 	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
 	if err != nil {
@@ -57,4 +59,5 @@ func main() {
 	if err != nil {
 		fmt.Printf("failed to publish msg: %v", err)
 	}
+		}()
 }
