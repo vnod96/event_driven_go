@@ -1,0 +1,76 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"os"
+
+	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/redis/go-redis/v9"
+)
+
+type PaymentCompleted struct {
+	PaymentID   string `json:"payment_id"`
+	OrderID     string `json:"order_id"`
+	CompletedAt string `json:"completed_at"`
+}
+
+type OrderConfirmed struct {
+	OrderID     string `json:"order_id"`
+	ConfirmedAt string `json:"confirmed_at"`
+}
+
+func main() {
+	logger := watermill.NewSlogLogger(nil)
+
+	router := message.NewDefaultRouter(logger)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: os.Getenv("REDIS_ADDR"),
+	})
+
+	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+		Client: rdb,
+	}, logger)
+	if err != nil {
+		panic(err)
+	}
+
+	pub, err := redisstream.NewPublisher(redisstream.PublisherConfig{
+		Client: rdb,
+	}, logger)
+	if err != nil {
+		panic(err)
+	}
+
+	router.AddHandler(
+		"payment-completed-handler",
+		"payment-completed",
+		sub,
+		"order-confirmed",
+		pub,
+		func(msg *message.Message) ([]*message.Message, error) {
+			var event PaymentCompleted
+			if err := json.Unmarshal(msg.Payload, &event); err != nil {
+				return nil, err
+			}
+			orderConfimedEvent := OrderConfirmed{
+				OrderID: event.OrderID,
+				ConfirmedAt: event.CompletedAt,
+			}
+			v, err:=json.Marshal(orderConfimedEvent)
+			if err != nil {
+				return nil, err
+			}
+			newMsg := message.NewMessage(watermill.NewUUID(), v)
+			return []*message.Message{newMsg}, nil
+		},
+	)
+
+	err = router.Run(context.Background())
+	if err != nil {
+		panic(err)
+	}
+}
