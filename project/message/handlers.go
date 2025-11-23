@@ -1,6 +1,7 @@
 package message
 
 import (
+	"context"
 	"tickets/worker"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -59,5 +60,12 @@ func NewHandlers(
 			return spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{tktId})
 		},
 	)
+
+	go func() {
+		err := router.Run(context.Background())
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 }
