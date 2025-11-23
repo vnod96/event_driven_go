@@ -19,7 +19,8 @@ func New(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
 ) Service {
-	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService)
+	w := worker.NewWorker(spreadsheetsAPI, receiptsService)
+	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w)
 
 	return Service{
 		echoRouter: echoRouter,
