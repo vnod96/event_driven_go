@@ -23,16 +23,16 @@ func main() {
 	}, logger)
 
 	if err != nil {
-		fmt.Errorf("failed to start publisher: %v", err)
+		fmt.Printf("failed to start publisher: %v", err)
 	}
 
 	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
 	if err != nil {
-		fmt.Errorf("failed to publish msg: %v", err)
+		fmt.Printf("failed to publish msg: %v", err)
 	}
 	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("100")))
 	if err != nil {
-		fmt.Errorf("failed to publish msg: %v", err)
+		fmt.Printf("failed to publish msg: %v", err)
 	}
 
 	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
@@ -41,13 +41,13 @@ func main() {
 	}, logger)
 
 	if err != nil {
-		fmt.Errorf("failed to start subscriber: %v", err)
+		fmt.Printf("failed to start subscriber: %v", err)
 	}
 
 	messages, err := sub.Subscribe(context.Background(), "progress")
 
 	if err != nil {
-		fmt.Errorf("failed to subscribe: %v", err)
+		fmt.Printf("failed to subscribe: %v", err)
 	}
 
 	for msg:= range messages {
