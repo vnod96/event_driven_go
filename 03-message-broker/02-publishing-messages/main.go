@@ -52,7 +52,7 @@ func main() {
 
 	for msg:= range messages {
 		val := string(msg.Payload)
-		fmt.Println("Message ID: %s - %s", msg.UUID, val)
+		fmt.Printf("Message ID: %s - %s", msg.UUID, val)
 		msg.Ack()
 	}
 
