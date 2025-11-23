@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -27,10 +28,15 @@ func main() {
 
 	router := message.NewDefaultRouter(logger)
 
-	router.AddConsumerHandler( "feherheit-router", "temperature-fahrenheit", sub, func(msg *message.Message) error {
+	router.AddConsumerHandler("feherheit-router", "temperature-fahrenheit", sub, func(msg *message.Message) error {
 		val := string(msg.Payload)
-		fmt.Printf("Temprature read: %s\n", val)
+		fmt.Printf("Temperature read: %s\n", val)
 		return nil
 	})
+
+	err = router.Run(context.Background())
+	if err != nil {
+		panic(err)
+	}
 
 }
