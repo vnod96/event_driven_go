@@ -1,4 +1,4 @@
-exercise_id = "681c3aaa-a251-4ebc-8ff8-4bf8c165f2cf"
-directory = "03-message-broker/03-subscribing"
+exercise_id = "0894876a-b539-4091-b262-b0e27c212f4f"
+directory = "03-message-broker/04-nack"
 is_text_only = false
 is_optional = false

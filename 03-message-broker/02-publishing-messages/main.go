@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -23,39 +22,15 @@ func main() {
 	}, logger)
 
 	if err != nil {
-		fmt.Printf("failed to start publisher: %v", err)
+		fmt.Errorf("failed to start publisher: %v", err)
 	}
 
-	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
-		Client: rc,
-	}, logger)
-
+	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
 	if err != nil {
-		fmt.Printf("failed to start subscriber: %v", err)
+		fmt.Errorf("failed to publish msg: %v", err)
 	}
-
-	messages, err := sub.Subscribe(context.Background(), "progress")
-
+	err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("100")))
 	if err != nil {
-		fmt.Printf("failed to subscribe: %v", err)
+		fmt.Errorf("failed to publish msg: %v", err)
 	}
-
-	logger.Info("subscriber started.", nil)
-
-	for msg := range messages {
-		val := string(msg.Payload)
-		fmt.Printf("Message ID: %s - %s\n", msg.UUID, val)
-		msg.Ack()
-	}
-
-	go func() {
-		err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("50")))
-		if err != nil {
-			fmt.Printf("failed to publish msg: %v", err)
-		}
-		err = pub.Publish("progress", message.NewMessage(watermill.NewUUID(), []byte("100")))
-		if err != nil {
-			fmt.Printf("failed to publish msg: %v", err)
-		}
-	}()
 }
