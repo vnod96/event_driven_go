@@ -3,13 +3,15 @@ package service
 import (
 	"context"
 	"errors"
-	"log/slog"
 	stdHTTP "net/http"
+	"os"
+	"os/signal"
 
 	"github.com/ThreeDotsLabs/watermill"
 	watermillMsg "github.com/ThreeDotsLabs/watermill/message"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/sync/errgroup"
 
 	ticketsHttp "tickets/http"
 	"tickets/message"
@@ -17,7 +19,7 @@ import (
 )
 
 type Service struct {
-	echoRouter *echo.Echo
+	echoRouter      *echo.Echo
 	watermillRouter *watermillMsg.Router
 }
 
@@ -32,22 +34,39 @@ func New(
 	echoRouter := ticketsHttp.NewHttpRouter(pub)
 
 	return Service{
-		echoRouter: echoRouter,
+		echoRouter:      echoRouter,
 		watermillRouter: watermillRouter,
 	}
 }
 
 func (s Service) Run(ctx context.Context) error {
-	go func() {
-		err:=s.watermillRouter.Run(ctx)
-		if err != nil {
-			slog.With("error", err).Error("failed to start router")
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return s.watermillRouter.Run(ctx)
+	})
+
+	g.Go(func() error {
+		err := s.echoRouter.Start(":8080")
+		if err != nil && !errors.Is(err, stdHTTP.ErrServerClosed) {
+			return err
 		}
-	}()
-	err := s.echoRouter.Start(":8080")
-	if err != nil && !errors.Is(err, stdHTTP.ErrServerClosed) {
+
+		return nil
+	})
+
+	g.Go(func() error {
+		// Shut down the HTTP server
+		<-ctx.Done()
+		return s.echoRouter.Shutdown(ctx)
+	})
+
+	err := g.Wait()
+	if err != nil {
 		return err
 	}
-
 	return nil
 }
