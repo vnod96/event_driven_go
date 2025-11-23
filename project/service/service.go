@@ -22,6 +22,8 @@ func New(
 	w := worker.NewWorker(spreadsheetsAPI, receiptsService)
 	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w)
 
+	go w.Run(context.Background())
+
 	return Service{
 		echoRouter: echoRouter,
 	}
