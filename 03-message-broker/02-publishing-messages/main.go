@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -33,4 +34,26 @@ func main() {
 	if err != nil {
 		fmt.Errorf("failed to publish msg: %v", err)
 	}
+
+	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+		Client: rc,
+		ConsumerGroup: "consumers",
+	}, logger)
+
+	if err != nil {
+		fmt.Errorf("failed to start subscriber: %v", err)
+	}
+
+	messages, err := sub.Subscribe(context.Background(), "progress")
+
+	if err != nil {
+		fmt.Errorf("failed to subscribe: %v", err)
+	}
+
+	for msg:= range messages {
+		val := string(msg.Payload)
+		fmt.Println("Message ID: %s - %s", msg.UUID, val)
+		msg.Ack()
+	}
+
 }
