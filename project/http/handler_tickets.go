@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -41,7 +42,16 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID)))
+		event := entities.AppendToTrackerPayload{
+			TicketID: ticket.TicketID,
+			CustomerEmail: ticket.CustomerEmail,
+			Price: ticket.Price,
+		}
+		eventMsg, err := json.Marshal(event)
+		if err != nil {
+			return err
+		}
+		err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), eventMsg))
 		if err != nil {
 			return err
 		}

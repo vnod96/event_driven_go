@@ -1,5 +1,8 @@
 package message
+
 import (
+	"encoding/json"
+	"tickets/entities"
 	"tickets/worker"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -53,8 +56,12 @@ func NewWatermillRouter(
 		"append-to-tracker",
 		spreadsheetConsumer,
 		func(msg *message.Message) error {
-			tktId := string(msg.Payload)
-			return spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{tktId})
+			var event entities.AppendToTrackerPayload
+			err := json.Unmarshal(msg.Payload, &event)
+			if err != nil {
+				return err
+			}
+			 return spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{event.TicketID, event.CustomerEmail, event.Price.Amount, event.Price.Currency})
 		},
 	)
 
