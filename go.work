@@ -1,1 +1,6 @@
 go 1.25.4
+
+use (
+	./02-async/01-goroutines
+	./project
+)
