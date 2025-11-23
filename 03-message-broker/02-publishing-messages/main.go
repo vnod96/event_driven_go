@@ -37,7 +37,6 @@ func main() {
 
 	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client: rc,
-		ConsumerGroup: "consumers",
 	}, logger)
 
 	if err != nil {
@@ -52,7 +51,7 @@ func main() {
 
 	for msg:= range messages {
 		val := string(msg.Payload)
-		fmt.Printf("Message ID: %s - %s", msg.UUID, val)
+		fmt.Printf("Message ID: %s - %s\n", msg.UUID, val)
 		msg.Ack()
 	}
 
