@@ -27,6 +27,12 @@ func ConsumeMessages(sub message.Subscriber, alarmClient AlarmClient) {
 				fmt.Printf("failed to start alarm. retrying. %v \n", err)
 				msg.Nack()
 			}
+		} else {
+			if err = alarmClient.StopAlarm(); err != nil {
+				fmt.Printf("failed to start alarm. retrying. %v \n", err)
+				msg.Nack()
+			}
+
 		}
 		msg.Ack()
 	}
