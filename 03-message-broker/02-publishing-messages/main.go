@@ -35,13 +35,14 @@ func main() {
 		fmt.Printf("failed to start subscriber: %v", err)
 	}
 
-	logger.Info("subscriber started.", nil)
 
 	messages, err := sub.Subscribe(context.Background(), "progress")
 
 	if err != nil {
 		fmt.Printf("failed to subscribe: %v", err)
 	}
+
+	logger.Info("subscriber started.", nil)
 
 	for msg:= range messages {
 		val := string(msg.Payload)
