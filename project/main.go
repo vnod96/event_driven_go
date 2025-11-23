@@ -25,6 +25,7 @@ func main() {
 	receiptsService := adapters.NewReceiptsServiceClient(apiClients)
 
 	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
+	defer redisClient.Close()
 
 	err = service.New(
 		spreadsheetsAPI,
