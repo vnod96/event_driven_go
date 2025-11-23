@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	ticketsHttp "tickets/http"
+	"tickets/worker"
 )
 
 type Service struct {
@@ -15,8 +16,8 @@ type Service struct {
 }
 
 func New(
-	spreadsheetsAPI ticketsHttp.SpreadsheetsAPI,
-	receiptsService ticketsHttp.ReceiptsService,
+	spreadsheetsAPI worker.SpreadsheetsAPI,
+	receiptsService worker.ReceiptsService,
 ) Service {
 	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService)
 
