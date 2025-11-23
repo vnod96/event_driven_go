@@ -1,20 +1,22 @@
 package message
 
 import (
-	"context"
 	"tickets/worker"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/redis/go-redis/v9"
 )
 
 func NewHandlers(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
-	receiptService  worker.ReceiptsService,
-	rc              *redis.Client,
-	logger          watermill.LoggerAdapter,
+	receiptService worker.ReceiptsService,
+	rc *redis.Client,
+	logger watermill.LoggerAdapter,
 ) {
+
+	router := message.NewDefaultRouter(logger)
 
 	issueConsumer, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
@@ -38,42 +40,24 @@ func NewHandlers(
 		panic(err)
 	}
 
-	go func() {
-		messages, err := issueConsumer.Subscribe(context.Background(), "issue-receipt")
-
-		if err != nil {
-			panic(err)
-		}
-
-		for msg := range messages {
+	router.AddConsumerHandler(
+		"issue-receipt-handler",
+		"issue-receipt",
+		issueConsumer,
+		func(msg *message.Message) error {
 			tktId := string(msg.Payload)
-			err := receiptService.IssueReceipt(msg.Context(), tktId)
-			if err != nil {
-				logger.Error("failed to issue receipt", err, nil)
-				msg.Nack()
-			} else {
-				msg.Ack()
-			}
-		}
-	}()
+			return receiptService.IssueReceipt(msg.Context(), tktId)
+		},
+	)
 
-	go func() {
-		messages, err := spreadsheetConsumer.Subscribe(context.Background(), "append-to-tracker")
-
-		if err != nil {
-			panic(err)
-		}
-
-		for msg := range messages {
+	router.AddConsumerHandler(
+		"append-to-tracker-handler",
+		"append-to-tracker",
+		spreadsheetConsumer,
+		func(msg *message.Message) error {
 			tktId := string(msg.Payload)
-			err := spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{tktId})
-			if err != nil {
-				logger.Error("failed to append to tracker", err, nil)
-				msg.Nack()
-			} else {
-				msg.Ack()
-			}
-		}
-	}()
+			return spreadsheetsAPI.AppendRow(msg.Context(), "tickets-to-print", []string{tktId})
+		},
+	)
 
 }
