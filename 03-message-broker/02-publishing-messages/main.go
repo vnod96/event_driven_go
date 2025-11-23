@@ -43,6 +43,8 @@ func main() {
 		fmt.Printf("failed to start subscriber: %v", err)
 	}
 
+	logger.Info("subscriber started.", nil)
+
 	messages, err := sub.Subscribe(context.Background(), "progress")
 
 	if err != nil {
