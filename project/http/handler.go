@@ -1,13 +1,9 @@
 package http
 
 import (
-	"tickets/worker"
-
-	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/ThreeDotsLabs/watermill/message"
 )
 
 type Handler struct {
-	spreadsheetsAPI worker.SpreadsheetsAPI
-	receiptsService worker.ReceiptsService
-	pub *redisstream.Publisher
+	pub message.Publisher
 }

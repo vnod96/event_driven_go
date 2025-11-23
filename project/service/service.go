@@ -5,6 +5,7 @@ import (
 	"errors"
 	stdHTTP "net/http"
 
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 
@@ -22,10 +23,15 @@ func New(
 	receiptsService worker.ReceiptsService,
 	redisClient *redis.Client,
 ) Service {
-	w := message.NewPubSubWorker(spreadsheetsAPI, receiptsService)
-	echoRouter := ticketsHttp.NewHttpRouter(spreadsheetsAPI, receiptsService, w.Pub)
-
-	go w.Run()
+	logger := watermill.NewSlogLogger(nil)
+	pub := message.NewRedisPublisher(redisClient, logger)
+	message.NewHandlers(
+		spreadsheetsAPI,
+		receiptsService,
+		redisClient,
+		logger,
+	)
+	echoRouter := ticketsHttp.NewHttpRouter(pub)
 
 	return Service{
 		echoRouter: echoRouter,
