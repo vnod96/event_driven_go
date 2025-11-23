@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -33,6 +34,8 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 	}
 
 	for _, ticket := range request.Tickets {
+		if ticket.Status == "confirmed" {
+			
 		err := h.pub.Publish("issue-receipt", message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID)))
 
 		if err != nil {
@@ -41,6 +44,9 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 		err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID)))
 		if err != nil {
 			return err
+		}
+		}else {
+			return fmt.Errorf("unknown ticket status: %s", ticket.Status)
 		}
 	}
 
