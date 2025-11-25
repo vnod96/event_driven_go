@@ -23,7 +23,7 @@ func NewReceiptsServiceClient(clients *clients.Clients) *ReceiptsServiceClient {
 	return &ReceiptsServiceClient{clients: clients}
 }
 
-func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, payload entities.IssueReceiptPayload) error {
+func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, payload entities.TicketBookingConfirmed) error {
 	resp, err := c.clients.Receipts.PutReceiptsWithResponse(ctx, receipts.CreateReceipt{
 		TicketId: payload.TicketID,
 		Price: receipts.Money{
