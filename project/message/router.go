@@ -43,7 +43,7 @@ func NewWatermillRouter(
 
 	router.AddConsumerHandler(
 		"issue-receipt-handler",
-		"issue-receipt",
+		"TicketBookingConfirmed",
 		issueConsumer,
 		func(msg *message.Message) error {
 			var event entities.IssueReceiptPayload
@@ -58,7 +58,7 @@ func NewWatermillRouter(
 
 	router.AddConsumerHandler(
 		"append-to-tracker-handler",
-		"append-to-tracker",
+		"TicketBookingConfirmed",
 		spreadsheetConsumer,
 		func(msg *message.Message) error {
 			var event entities.AppendToTrackerPayload
