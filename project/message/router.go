@@ -46,8 +46,13 @@ func NewWatermillRouter(
 		"issue-receipt",
 		issueConsumer,
 		func(msg *message.Message) error {
-			tktId := string(msg.Payload)
-			return receiptService.IssueReceipt(msg.Context(), tktId)
+			var event entities.IssueReceiptPayload
+			err := json.Unmarshal(msg.Payload, &event)
+			if err != nil {
+				return err
+			}
+
+			return receiptService.IssueReceipt(msg.Context(), event)
 		},
 	)
 
