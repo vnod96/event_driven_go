@@ -37,36 +37,26 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
 
-			issueEvent := entities.AppendToTrackerPayload {
+			ticketEvent := entities.TicketBookingConfirmed {
+				Header: entities.NewMessageHeader(),
 				TicketID: ticket.TicketID,
+				CustomerEmail: ticket.CustomerEmail,
 				Price: ticket.Price,
 			}
 
-			issueEventMsg, err := json.Marshal(issueEvent)
+			ticketEventJson, err := json.Marshal(ticketEvent)
 
 			if err != nil {
 				return err
 			}
 
 
-			err = h.pub.Publish("issue-receipt", message.NewMessage(watermill.NewUUID(), issueEventMsg))
+			err = h.pub.Publish("TicketBookingConfirmed", message.NewMessage(watermill.NewUUID(), ticketEventJson))
 
 			if err != nil {
 				return err
 			}
-			event := entities.AppendToTrackerPayload{
-				TicketID:      ticket.TicketID,
-				CustomerEmail: ticket.CustomerEmail,
-				Price:         ticket.Price,
-			}
-			eventMsg, err := json.Marshal(event)
-			if err != nil {
-				return err
-			}
-			err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), eventMsg))
-			if err != nil {
-				return err
-			}
+
 		} else {
 			return fmt.Errorf("unknown ticket status: %s", ticket.Status)
 		}
