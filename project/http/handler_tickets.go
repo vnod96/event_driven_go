@@ -17,10 +17,10 @@ type ticketsConfirmationRequest struct {
 }
 
 type TicketStatusRequest struct {
-	TicketID string `json:"ticket_id"`
-	Status string `json:"status"`
-	Price entities.Money  `json:"price"`
-	CustomerEmail string `json:"customer_email"`
+	TicketID      string         `json:"ticket_id"`
+	Status        string         `json:"status"`
+	Price         entities.Money `json:"price"`
+	CustomerEmail string         `json:"customer_email"`
 }
 
 type TicketsStatusRequest struct {
@@ -36,26 +36,38 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
-			
-		err := h.pub.Publish("issue-receipt", message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID)))
 
-		if err != nil {
-			return err
-		}
-		event := entities.AppendToTrackerPayload{
-			TicketID: ticket.TicketID,
-			CustomerEmail: ticket.CustomerEmail,
-			Price: ticket.Price,
-		}
-		eventMsg, err := json.Marshal(event)
-		if err != nil {
-			return err
-		}
-		err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), eventMsg))
-		if err != nil {
-			return err
-		}
-		}else {
+			issueEvent := entities.AppendToTrackerPayload {
+				TicketID: ticket.TicketID,
+				Price: ticket.Price,
+			}
+
+			issueEventMsg, err := json.Marshal(issueEvent)
+
+			if err != nil {
+				return err
+			}
+
+
+			err = h.pub.Publish("issue-receipt", message.NewMessage(watermill.NewUUID(), issueEventMsg))
+
+			if err != nil {
+				return err
+			}
+			event := entities.AppendToTrackerPayload{
+				TicketID:      ticket.TicketID,
+				CustomerEmail: ticket.CustomerEmail,
+				Price:         ticket.Price,
+			}
+			eventMsg, err := json.Marshal(event)
+			if err != nil {
+				return err
+			}
+			err = h.pub.Publish("append-to-tracker", message.NewMessage(watermill.NewUUID(), eventMsg))
+			if err != nil {
+				return err
+			}
+		} else {
 			return fmt.Errorf("unknown ticket status: %s", ticket.Status)
 		}
 	}
