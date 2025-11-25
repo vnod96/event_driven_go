@@ -29,7 +29,7 @@ type SpreadsheetsAPI interface {
 }
 
 type ReceiptsService interface {
-	IssueReceipt(ctx context.Context, payload entities.IssueReceiptPayload) error
+	IssueReceipt(ctx context.Context, payload entities.TicketBookingConfirmed) error
 }
 
 func NewWorker(
