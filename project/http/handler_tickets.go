@@ -7,6 +7,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/labstack/echo/v4"
 
 	"tickets/entities"
@@ -34,6 +35,8 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 		return err
 	}
 
+	correlationID := c.Request().Header.Get("Correlation-ID")
+
 	for _, ticket := range request.Tickets {
 		switch ticket.Status {
 		case "confirmed":
@@ -47,7 +50,9 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			err = h.pub.Publish("TicketBookingConfirmed", message.NewMessage(watermill.NewUUID(), ticketEventJson))
+			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
+			middleware.SetCorrelationID(correlationID, msg)
+			err = h.pub.Publish("TicketBookingConfirmed", msg)
 			if err != nil {
 				return err
 			}
@@ -63,7 +68,9 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			err = h.pub.Publish("TicketBookingCanceled", message.NewMessage(watermill.NewUUID(), ticketEventJson))
+			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
+			middleware.SetCorrelationID(correlationID, msg)
+			err = h.pub.Publish("TicketBookingCanceled", msg)
 			if err != nil {
 				return err
 			}
