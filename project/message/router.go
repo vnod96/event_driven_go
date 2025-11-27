@@ -101,3 +101,10 @@ func NewWatermillRouter(
 
 	return router
 }
+
+func LoggingMiddleware(next message.HandlerFunc) message.HandlerFunc {
+	return func(msg *message.Message) ([]*message.Message, error) {
+		
+		return next(msg)
+	}
+}
