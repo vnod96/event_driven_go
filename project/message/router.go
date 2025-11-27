@@ -19,7 +19,7 @@ func NewWatermillRouter(
 	logger watermill.LoggerAdapter,
 ) *message.Router {
 	router := message.NewDefaultRouter(logger)
-
+	useMiddlewares(router)
 	handler := event.NewHandler(receiptService, spreadsheetsAPI)
 
 	issueConsumer, err := redisstream.NewSubscriber(
@@ -55,7 +55,6 @@ func NewWatermillRouter(
 		panic(err)
 	}
 
-	router.AddMiddleware(LoggingMiddleware)
 
 	router.AddConsumerHandler(
 		"issue-receipt-handler",

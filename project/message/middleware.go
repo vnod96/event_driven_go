@@ -4,8 +4,14 @@ import (
 	"log/slog"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 )
 
+func useMiddlewares(router *message.Router) {
+
+	router.AddMiddleware(middleware.CorrelationID)
+	router.AddMiddleware(LoggingMiddleware)
+}
 
 
 func LoggingMiddleware(next message.HandlerFunc) message.HandlerFunc {
