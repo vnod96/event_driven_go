@@ -11,7 +11,14 @@ import (
 func useMiddlewares(router *message.Router) {
 
 	router.AddMiddleware(middleware.CorrelationID)
-	router.AddMiddleware(LoggingMiddleware)
+	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
+		return func(msg *message.Message) ([]*message.Message, error) {
+			correlationID:= middleware.MessageCorrelationID(msg)
+			ctx := log.ToContext(msg.Context(), slog.With("correlation_id", correlationID))
+			msg.SetContext(ctx)
+			return h(msg)
+		}
+	})
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(msg *message.Message) ([]*message.Message, error) {
 			correlationId := middleware.MessageCorrelationID(msg)
@@ -20,12 +27,14 @@ func useMiddlewares(router *message.Router) {
 			return h(msg)
 		}
 	})
+	router.AddMiddleware(LoggingMiddleware)
 }
 
 
 func LoggingMiddleware(next message.HandlerFunc) message.HandlerFunc {
 	return func(msg *message.Message) ([]*message.Message, error) {
-		logger := slog.With(
+		logger := log.FromContext(msg.Context())
+		logger = logger.With(
 			"message_id", msg.UUID,
 			"payload", string(msg.Payload),
 			"metadata", msg.Metadata,
