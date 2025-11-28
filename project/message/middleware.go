@@ -11,18 +11,12 @@ import (
 func useMiddlewares(router *message.Router) {
 
 	router.AddMiddleware(middleware.CorrelationID)
-	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
-		return func(msg *message.Message) ([]*message.Message, error) {
-			correlationID:= middleware.MessageCorrelationID(msg)
-			ctx := log.ToContext(msg.Context(), slog.With("correlation_id", correlationID))
-			msg.SetContext(ctx)
-			return h(msg)
-		}
-	})
+
 	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
 		return func(msg *message.Message) ([]*message.Message, error) {
 			correlationId := middleware.MessageCorrelationID(msg)
-			ctx := log.ContextWithCorrelationID(msg.Context(), correlationId)
+			ctx := log.ToContext(msg.Context(), slog.With("correlation_id", correlationId))
+			ctx = log.ContextWithCorrelationID(ctx, correlationId)
 			msg.SetContext(ctx)
 			return h(msg)
 		}
