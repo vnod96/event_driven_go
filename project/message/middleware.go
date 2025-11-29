@@ -35,6 +35,16 @@ func LoggingMiddleware(next message.HandlerFunc) message.HandlerFunc {
 			"handler", message.HandlerNameFromCtx(msg.Context()),
 		)
 		logger.Info("Handling a message")
-		return next(msg)
+		msgs, err := next(msg)
+		defer func() {
+			if err != nil {
+				logger.With(
+					"message_id", msg.UUID,
+					"error", err,
+				).Error("Error while handling a message")
+			}
+		}()
+
+		return msgs, err
 	}
 }
