@@ -1,4 +1,4 @@
-exercise_id = "35c7b8f6-31aa-45a3-9010-ad3c8f047048"
-directory = "08-component-tests/01-component-tests"
-is_text_only = true
+exercise_id = "f38a03f1-1a7d-4fcf-845f-71d4f9909cf4"
+directory = "08-component-tests/02-stubs"
+is_text_only = false
 is_optional = true
