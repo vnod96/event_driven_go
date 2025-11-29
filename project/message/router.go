@@ -61,16 +61,13 @@ func NewWatermillRouter(
 		"TicketBookingConfirmed",
 		issueConsumer,
 		func(msg *message.Message) error {
-			if msg.UUID == "2beaf5bc-d5e4-4653-b075-2b36bbf28949" {
-				return nil
-			}
-			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-				return nil
-			}
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 
 			return handler.IssueReceipt(msg.Context(), event)
@@ -82,16 +79,13 @@ func NewWatermillRouter(
 		"TicketBookingConfirmed",
 		spreadsheetConsumer,
 		func(msg *message.Message) error {
-			if msg.UUID == "2beaf5bc-d5e4-4653-b075-2b36bbf28949" {
-				return nil
-			}
-			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-				return nil
-			}
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 			return handler.AppendRow(msg.Context(), event)
 		},
@@ -102,13 +96,13 @@ func NewWatermillRouter(
 		"TicketBookingCanceled",
 		ticketCancelledConsumer,
 		func(msg *message.Message) error {
-			if msg.Metadata.Get("type") != "TicketBookingCanceled" {
-				return nil
-			}
 			var event entities.TicketBookingCanceled
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 			return handler.RefundTicket(msg.Context(), event)
 		},
