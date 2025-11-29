@@ -24,7 +24,7 @@ type ReceiptsServiceStub struct {
 	IssuedReceipts []IssueReceiptRequest
 }
 
-func (r ReceiptsServiceStub) IssueReceipt(ctx context.Context, request IssueReceiptRequest) error {
+func (r *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request IssueReceiptRequest) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	r.IssuedReceipts = append(r.IssuedReceipts, request)
