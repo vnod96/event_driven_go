@@ -51,6 +51,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 				return err
 			}
 			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
+			msg.Metadata.Set("type", "TicketBookingConfirmed")
 			middleware.SetCorrelationID(correlationID, msg)
 			err = h.pub.Publish("TicketBookingConfirmed", msg)
 			if err != nil {
@@ -69,6 +70,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 				return err
 			}
 			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
+			msg.Metadata.Set("type", "TicketBookingCanceled")
 			middleware.SetCorrelationID(correlationID, msg)
 			err = h.pub.Publish("TicketBookingCanceled", msg)
 			if err != nil {
