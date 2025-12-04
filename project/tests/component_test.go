@@ -1,8 +1,11 @@
 package tests_test
 
 import (
+	"context"
 	"net/http"
+	"sync"
 	"testing"
+	"tickets/entities"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -34,4 +37,31 @@ func waitForHttpServer(t *testing.T) {
 		time.Second*10,
 		time.Millisecond*50,
 	)
+}
+
+
+type ReceiptsServiceStub struct {
+	lock sync.Mutex
+	IssuedReceipts []entities.TicketBookingConfirmed
+}
+
+func (r *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.TicketBookingConfirmed) error {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.IssuedReceipts = append(r.IssuedReceipts, request)
+	return nil
+}
+
+type SpreadsheetsAPIStub struct {
+	lock sync.Mutex
+	sheets map[string][][]string
+}
+
+func (s *SpreadsheetsAPIStub) AppendRow(ctx context.Context, sheetName string, row []string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.sheets[sheetName] = append(s.sheets[sheetName], row)
+
+	return nil
 }
