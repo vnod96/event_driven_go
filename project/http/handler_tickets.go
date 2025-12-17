@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -37,6 +38,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 
 	correlationID := c.Request().Header.Get("Correlation-ID")
 
+	log.Println("Recieved Req======================", len(request.Tickets))
 	for _, ticket := range request.Tickets {
 		switch ticket.Status {
 		case "confirmed":
