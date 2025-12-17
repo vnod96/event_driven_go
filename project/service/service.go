@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	ticketsHttp "tickets/http"
+	"tickets/message/event"
 	"tickets/message"
 	"tickets/worker"
 )
@@ -28,8 +29,9 @@ func New(
 ) Service {
 	logger := watermill.NewSlogLogger(nil)
 	pub := message.NewRedisPublisher(redisClient, logger)
+	eb := event.NewEventBus(pub, logger)
 	watermillRouter := message.NewWatermillRouter(spreadsheetsAPI, receiptsService, redisClient, logger)
-	echoRouter := ticketsHttp.NewHttpRouter(pub)
+	echoRouter := ticketsHttp.NewHttpRouter(eb)
 
 	return Service{
 		echoRouter:      echoRouter,

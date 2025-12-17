@@ -1,6 +1,7 @@
 package message
 
 import (
+	"tickets/message/event"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -14,6 +15,7 @@ func NewRedisClient(addr string) *redis.Client {
 }
 
 func NewRedisPublisher(rc *redis.Client, logger watermill.LoggerAdapter) message.Publisher {
+	var pub message.Publisher
 	pub, err :=  redisstream.NewPublisher(
 		redisstream.PublisherConfig{
 			Client: rc,
@@ -22,5 +24,5 @@ func NewRedisPublisher(rc *redis.Client, logger watermill.LoggerAdapter) message
 	if err != nil {
 		panic(err)
 	}
-	return pub
+	return event.CorrelationPublisherDecorator{pub}
 }

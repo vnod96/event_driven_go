@@ -1,16 +1,14 @@
 package http
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/labstack/echo/v4"
 
+	commonLog "github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"tickets/entities"
 )
 
@@ -37,6 +35,8 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 	}
 
 	correlationID := c.Request().Header.Get("Correlation-ID")
+	ctx := context.Background()
+	ctx = commonLog.ContextWithCorrelationID(ctx, correlationID)
 
 	log.Println("Recieved Req======================", len(request.Tickets))
 	for _, ticket := range request.Tickets {
@@ -48,14 +48,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
 			}
-			ticketEventJson, err := json.Marshal(ticketEvent)
-			if err != nil {
-				return err
-			}
-			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
-			msg.Metadata.Set("type", "TicketBookingConfirmed")
-			middleware.SetCorrelationID(correlationID, msg)
-			err = h.pub.Publish("TicketBookingConfirmed", msg)
+			err = h.eventBus.Publish(ctx, ticketEvent)
 			if err != nil {
 				return err
 			}
@@ -67,14 +60,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
 			}
-			ticketEventJson, err := json.Marshal(ticketEvent)
-			if err != nil {
-				return err
-			}
-			msg := message.NewMessage(watermill.NewUUID(), ticketEventJson)
-			msg.Metadata.Set("type", "TicketBookingCanceled")
-			middleware.SetCorrelationID(correlationID, msg)
-			err = h.pub.Publish("TicketBookingCanceled", msg)
+			err = h.eventBus.Publish(ctx, ticketEvent)
 			if err != nil {
 				return err
 			}
