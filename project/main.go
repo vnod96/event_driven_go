@@ -9,6 +9,8 @@ import (
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/clients"
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 
 	"tickets/adapters"
 	"tickets/message"
@@ -17,6 +19,16 @@ import (
 
 func main() {
 	log.Init(slog.LevelInfo)
+	db, err := sqlx.Open("postgres", os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
 
 	apiClients, err := clients.NewClients(os.Getenv("GATEWAY_ADDR"), func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Correlation-ID", log.CorrelationIDFromContext(ctx))
@@ -36,6 +48,7 @@ func main() {
 	defer cancel()
 
 	err = service.New(
+		db,
 		spreadsheetsAPI,
 		receiptsService,
 		redisClient,

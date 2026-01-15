@@ -1,113 +1,44 @@
 package message
 
 import (
-	"encoding/json"
-	"tickets/entities"
 	"tickets/message/event"
-	"tickets/worker"
 
 	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/redis/go-redis/v9"
 )
 
 func NewWatermillRouter(
-	spreadsheetsAPI worker.SpreadsheetsAPI,
-	receiptService worker.ReceiptsService,
-	rc *redis.Client,
+	config cqrs.EventProcessorConfig,
+	handler event.Handler,
 	logger watermill.LoggerAdapter,
 ) *message.Router {
 	router := message.NewDefaultRouter(logger)
 	useMiddlewares(router, logger)
-	handler := event.NewHandler(receiptService, spreadsheetsAPI)
-
-	issueConsumer, err := redisstream.NewSubscriber(
-		redisstream.SubscriberConfig{
-			Client:        rc,
-			ConsumerGroup: "issue-receipt-consumer-group",
-		}, logger,
-	)
-
+	p, err := cqrs.NewEventProcessorWithConfig(router, config)
 	if err != nil {
 		panic(err)
 	}
-
-	spreadsheetConsumer, err := redisstream.NewSubscriber(
-		redisstream.SubscriberConfig{
-			Client:        rc,
-			ConsumerGroup: "append-to-tracker-consumer-group",
-		}, logger,
+	err = p.AddHandlers(
+		cqrs.NewEventHandler(
+			"issue-receipt-handler",
+			handler.IssueReceipt,
+		),
+		cqrs.NewEventHandler(
+			"append-to-tracker-handler",
+			handler.AppendRow,
+		),
+		cqrs.NewEventHandler(
+			"ticket-canceled-handler",
+			handler.RefundTicket,
+		),
+		cqrs.NewEventHandler(
+			"ticket-saver",
+			handler.SaveTicket,
+		),
 	)
-
 	if err != nil {
 		panic(err)
 	}
-
-	ticketCancelledConsumer, err := redisstream.NewSubscriber(
-		redisstream.SubscriberConfig{
-			Client:        rc,
-			ConsumerGroup: "ticket-canceled-consumer",
-		}, logger,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-
-	router.AddConsumerHandler(
-		"issue-receipt-handler",
-		"TicketBookingConfirmed",
-		issueConsumer,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingConfirmed
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
-			}
-
-			return handler.IssueReceipt(msg.Context(), event)
-		},
-	)
-
-	router.AddConsumerHandler(
-		"append-to-tracker-handler",
-		"TicketBookingConfirmed",
-		spreadsheetConsumer,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingConfirmed
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
-			}
-			return handler.AppendRow(msg.Context(), event)
-		},
-	)
-
-	router.AddConsumerHandler(
-		"ticket-canceled-handler",
-		"TicketBookingCanceled",
-		ticketCancelledConsumer,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingCanceled
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
-			}
-			return handler.RefundTicket(msg.Context(), event)
-		},
-	)
-
-
 	return router
 }

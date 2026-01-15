@@ -14,6 +14,7 @@ import (
 	"tickets/service"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,11 +27,19 @@ func TestComponent(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	db, err := sqlx.Open("postgres", os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
+
 	spreadsheetsAPI := &SpreadsheetsAPIStub{}
 	receiptService := &ReceiptsServiceStub{}
 
 	go func() {
 		svc := service.New(
+			db,
 			spreadsheetsAPI,
 			receiptService,
 			rc,
@@ -86,10 +95,10 @@ type ReceiptsServiceStub struct {
 	IssuedReceipts []entities.TicketBookingConfirmed
 }
 
-func (r *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.TicketBookingConfirmed) error {
+func (r *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request *entities.TicketBookingConfirmed) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.IssuedReceipts = append(r.IssuedReceipts, request)
+	r.IssuedReceipts = append(r.IssuedReceipts, *request)
 	return nil
 }
 
