@@ -7,8 +7,8 @@ import (
 )
 
 type Money struct {
-	Amount string `json:"amount" db:"price_amount"`
-	Currency string `json:"currency" db:"price_currency"`
+	Amount string `json:"amount" db:"amount"`
+	Currency string `json:"currency" db:"currency"`
 }
 
 type AppendToTrackerPayload struct {
@@ -27,7 +27,7 @@ type TicketBookingConfirmed struct {
 
 	TicketID string `json:"ticket_id" db:"ticket_id"`
 	CustomerEmail string `json:"customer_email" db:"customer_email"`
-	Price Money `json:"price"`
+	Price Money `json:"price" db:"price"`
 }
 
 type TicketBookingCanceled struct {

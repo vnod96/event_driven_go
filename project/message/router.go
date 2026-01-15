@@ -36,6 +36,10 @@ func NewWatermillRouter(
 			"ticket-saver",
 			handler.SaveTicket,
 		),
+		cqrs.NewEventHandler(
+			"ticket-remover",
+			handler.RemoveTicket,
+		),
 	)
 	if err != nil {
 		panic(err)
