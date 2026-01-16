@@ -72,3 +72,12 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 
 	return c.NoContent(http.StatusOK)
 }
+
+func (h Handler) GetTickets(c echo.Context) error {
+	tkts, err := h.repo.FindAll(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	c.JSON(200, tkts)
+	return nil
+}

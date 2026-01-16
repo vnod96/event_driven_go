@@ -37,7 +37,7 @@ func New(
 	repo := db.NewTicketReposity(dbConn)
 	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, repo)
 	watermillRouter := message.NewWatermillRouter(event.NewEventProcessorConfig(redisClient, logger), eventsHandler, logger)
-	echoRouter := ticketsHttp.NewHttpRouter(eb)
+	echoRouter := ticketsHttp.NewHttpRouter(eb, repo)
 
 	return Service{
 		db: dbConn,

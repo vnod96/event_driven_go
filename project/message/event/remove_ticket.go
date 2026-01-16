@@ -8,5 +8,5 @@ import (
 
 func (h Handler) RemoveTicket(ctx context.Context, tkt *entities.TicketBookingCanceled) error {
 	fmt.Println("removing ticket.")
-	return h.ticketRepository.RemoveTicket(ctx, tkt)
+	return h.ticketRepository.Remove(ctx, tkt.TicketID)
 }

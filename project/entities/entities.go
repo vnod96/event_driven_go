@@ -11,6 +11,20 @@ type Money struct {
 	Currency string `json:"currency" db:"currency"`
 }
 
+type Ticket struct {
+	TicketID string `json:"ticket_id" db:"ticket_id"`
+	CustomerEmail string `json:"customer_email" db:"customer_email"`
+	Price Money `json:"price" db:"price"`
+}
+
+func ToTicket(confirmedEvent *TicketBookingConfirmed) *Ticket {
+	return &Ticket{
+		TicketID: confirmedEvent.TicketID,
+		CustomerEmail: confirmedEvent.CustomerEmail,
+		Price: confirmedEvent.Price,
+	}
+}
+
 type AppendToTrackerPayload struct {
 	TicketID string `json:"ticket_id"`
 	CustomerEmail string `json:"customer_email"`
@@ -25,9 +39,9 @@ type IssueReceiptPayload struct {
 type TicketBookingConfirmed struct {
 	Header MessageHeader `json:"header"`
 
-	TicketID string `json:"ticket_id" db:"ticket_id"`
-	CustomerEmail string `json:"customer_email" db:"customer_email"`
-	Price Money `json:"price" db:"price"`
+	TicketID string `json:"ticket_id"`
+	CustomerEmail string `json:"customer_email"`
+	Price Money `json:"price"`
 }
 
 type TicketBookingCanceled struct {
