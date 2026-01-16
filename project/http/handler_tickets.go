@@ -34,6 +34,11 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 		return err
 	}
 
+	idempotencyKey := c.Request().Header.Get("Idempotency-Key")
+	if idempotencyKey == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "idempotency key header is required")
+	}
+
 	correlationID := c.Request().Header.Get("Correlation-ID")
 	ctx := context.Background()
 	ctx = commonLog.ContextWithCorrelationID(ctx, correlationID)
@@ -43,7 +48,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 		switch ticket.Status {
 		case "confirmed":
 			ticketEvent := entities.TicketBookingConfirmed{
-				Header:        entities.NewMessageHeader(),
+				Header:        entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
@@ -55,7 +60,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 
 		case "canceled":
 			ticketEvent := entities.TicketBookingCanceled{
-				Header:        entities.NewMessageHeader(),
+				Header:        entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
