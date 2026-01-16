@@ -1,4 +1,4 @@
-exercise_id = "252e1ec5-3e3e-4fbb-aad3-e4c6d25b0934"
-directory = "project"
+exercise_id = "6fa891d7-2a64-4e48-81b6-0ce889c899fa"
+directory = "10-at-least-once-delivery/05-idempotent-event-handlers"
 is_text_only = false
 is_optional = false
