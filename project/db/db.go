@@ -25,7 +25,7 @@ func NewTicketReposity(dbConn *sqlx.DB) *PostgresTicketRepostory {
 func (t *PostgresTicketRepostory) Save(context context.Context, ticket *entities.Ticket) error {
 	fmt.Println("saving ticket in db.")
 	_, err := t.db.NamedExecContext(context, `INSERT INTO tickets(ticket_id, price_amount, price_currency, customer_email)
-	VALUES (:ticket_id, :price.amount, :price.currency, :customer_email);`, ticket)
+	VALUES (:ticket_id, :price.amount, :price.currency, :customer_email) ON CONFLICT DO NOTHING;`, ticket)
 	return err;
 }
 
