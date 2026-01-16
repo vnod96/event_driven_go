@@ -32,6 +32,10 @@ type ReceiptsService interface {
 	IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed) error
 }
 
+type FileService interface {
+	PutFile(ctx context.Context, fileId string, fileContent string) error
+}
+
 func NewWorker(
 	spreadsheetsAPI SpreadsheetsAPI,
 	receiptsService ReceiptsService,

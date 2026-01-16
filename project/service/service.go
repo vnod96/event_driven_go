@@ -29,13 +29,14 @@ func New(
 	dbConn *sqlx.DB,
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
+	fileService worker.FileService,
 	redisClient *redis.Client,
 ) Service {
 	logger := watermill.NewSlogLogger(nil)
 	pub := message.NewRedisPublisher(redisClient, logger)
 	eb := event.NewEventBus(pub, logger)
 	repo := db.NewTicketReposity(dbConn)
-	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, repo)
+	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo)
 	watermillRouter := message.NewWatermillRouter(event.NewEventProcessorConfig(redisClient, logger), eventsHandler, logger)
 	echoRouter := ticketsHttp.NewHttpRouter(eb, repo)
 

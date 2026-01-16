@@ -40,6 +40,10 @@ func NewWatermillRouter(
 			"ticket-remover",
 			handler.RemoveTicket,
 		),
+		cqrs.NewEventHandler(
+			"print-ticket",
+			handler.PrintFile,
+		),
 	)
 	if err != nil {
 		panic(err)
