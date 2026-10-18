@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"tickets/adapters"
 	"tickets/entities"
 	ticketsHttp "tickets/http"
 	"tickets/message"
@@ -36,12 +37,14 @@ func TestComponent(t *testing.T) {
 
 	spreadsheetsAPI := &SpreadsheetsAPIStub{}
 	receiptService := &ReceiptsServiceStub{}
+	filesApi := &adapters.FilesApiStub{}
 
 	go func() {
 		svc := service.New(
 			db,
 			spreadsheetsAPI,
 			receiptService,
+			filesApi,
 			rc,
 		)
 
@@ -92,13 +95,16 @@ func waitForHttpServer(t *testing.T) {
 
 type ReceiptsServiceStub struct {
 	lock           sync.Mutex
-	IssuedReceipts []entities.TicketBookingConfirmed
+	IssuedReceipts map[string]entities.TicketBookingConfirmed
 }
 
 func (r *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request *entities.TicketBookingConfirmed) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.IssuedReceipts = append(r.IssuedReceipts, *request)
+	if r.IssuedReceipts == nil {
+		r.IssuedReceipts = make(map[string]entities.TicketBookingConfirmed)
+	}
+	r.IssuedReceipts[request.Header.IdempotencyKey] = *request
 	return nil
 }
 

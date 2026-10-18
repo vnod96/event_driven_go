@@ -8,4 +8,6 @@ import (
 type Handler struct {
 	eventBus *cqrs.EventBus
 	repo db.TicketRepository
+	showRepo db.ShowRepository
+	bookingRepo db.BookingRepository
 }

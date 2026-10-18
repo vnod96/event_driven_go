@@ -2,6 +2,7 @@ package message
 
 import (
 	"tickets/message/event"
+	"tickets/outbox"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
@@ -9,12 +10,15 @@ import (
 )
 
 func NewWatermillRouter(
+	postgresSubscriber message.Subscriber,
+	publisher message.Publisher,
 	config cqrs.EventProcessorConfig,
 	handler event.Handler,
 	logger watermill.LoggerAdapter,
 ) *message.Router {
 	router := message.NewDefaultRouter(logger)
 	useMiddlewares(router, logger)
+	outbox.AddForwarder(postgresSubscriber, publisher, router, logger)
 	p, err := cqrs.NewEventProcessorWithConfig(router, config)
 	if err != nil {
 		panic(err)
@@ -43,6 +47,10 @@ func NewWatermillRouter(
 		cqrs.NewEventHandler(
 			"print-ticket",
 			handler.PrintFile,
+		),
+		cqrs.NewEventHandler(
+			"make-booking",
+			handler.MakeBooking,
 		),
 	)
 	if err != nil {

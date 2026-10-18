@@ -66,5 +66,6 @@ func (h Handler) SignUp(u User) error {
 			break
 		}
 	}()
+
 	return nil
 }

@@ -3,6 +3,8 @@ package worker
 import (
 	"context"
 	"tickets/entities"
+
+	"github.com/google/uuid"
 )
 
 type Task int
@@ -36,6 +38,10 @@ type FileService interface {
 	PutFile(ctx context.Context, fileId string, fileContent string) error
 }
 
+type DeadNationService interface {
+	PostTicket(ctx context.Context, e *entities.BookingMade, deadNationId uuid.UUID) error
+}
+
 func NewWorker(
 	spreadsheetsAPI SpreadsheetsAPI,
 	receiptsService ReceiptsService,
@@ -56,19 +62,19 @@ func (w *Worker) Send(msgs ...Message) {
 
 func (w *Worker) Run(ctx context.Context) {
 	// for msg := range w.queue {
-		// switch msg.Task {
-		// case TaskIssueReceipt:
-		// 	err := w.receiptsService.IssueReceipt(ctx, msg.TicketID)
-		// 	if err != nil {
-		// 		slog.With("error", err).Error("failed to issue the receipt")
-		// 		w.Send(msg)
-		// 	}
-		// case TaskAppendToTracker:
-		// 	err := w.spreadsheetsAPI.AppendRow(ctx, "tickets-to-print", []string{msg.TicketID})
-		// 	if err != nil {
-		// 		slog.With("error", err).Error("failed to append to tracker")
-		// 		w.Send(msg)
-		// 	}
-		// }
+	// switch msg.Task {
+	// case TaskIssueReceipt:
+	// 	err := w.receiptsService.IssueReceipt(ctx, msg.TicketID)
+	// 	if err != nil {
+	// 		slog.With("error", err).Error("failed to issue the receipt")
+	// 		w.Send(msg)
+	// 	}
+	// case TaskAppendToTracker:
+	// 	err := w.spreadsheetsAPI.AppendRow(ctx, "tickets-to-print", []string{msg.TicketID})
+	// 	if err != nil {
+	// 		slog.With("error", err).Error("failed to append to tracker")
+	// 		w.Send(msg)
+	// 	}
+	// }
 	// }
 }

@@ -12,16 +12,23 @@ import (
 func NewHttpRouter(
 	eventBus *cqrs.EventBus,
 	repo db.TicketRepository,
+	showRepo db.ShowRepository,
+	bookingRepo db.BookingRepository,
 ) *echo.Echo {
 	e := libHttp.NewEcho()
 
 	handler := Handler{
 		eventBus: eventBus,
 		repo : repo,
+		showRepo: showRepo,
+		bookingRepo: bookingRepo,
 	}
 
 	e.POST("/tickets-confirmation", handler.PostTicketsConfirmation)
 	e.POST("/tickets-status", handler.PostTicketsConfirmation)
+
+	e.POST("/shows", handler.CreateShow)
+	e.POST("/book-tickets", handler.BookTickets)
 
 	e.GET("tickets", handler.GetTickets)
 

@@ -14,6 +14,11 @@ type TicketRepository interface {
 	FindAll(context context.Context) ([]entities.Ticket, error)
 }
 
+type ShowRepository interface {
+	Save(ctx context.Context, show entities.Show) error
+	ShowByID(ctx context.Context, showID string) (entities.Show, error)
+}
+
 type PostgresTicketRepostory struct {
 	db *sqlx.DB
 }

@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -13,6 +15,35 @@ func InitializeSchema(db *sqlx.DB) error {
 		 customer_email VARCHAR(255) NOT NULL
 		);`)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("error creating tickets table %v", err)
+	}
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS shows
+	( show_id UUID PRIMARY KEY,
+	 dead_nation_id UUID NOT NULL,
+	 number_of_tickets INT NOT NULL,
+	 start_time TIMESTAMP NOT NULL,
+	 title VARCHAR(255) NOT NULL,
+	 venue VARCHAR(255) NOT NULL,
+	 UNIQUE(dead_nation_id)
+	);`)
+
+	if err != nil {
+		return fmt.Errorf("error creating shows table %v", err)
+	}
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS bookings
+	( booking_id UUID PRIMARY KEY,
+	show_id UUID NOT NULL,
+	number_of_tickets INT NOT NULL,
+	customer_email VARCHAR(255) NOT NULL,
+	FOREIGN KEY (show_id) REFERENCES shows(show_id)
+	);`)
+
+	if err != nil {
+	return fmt.Errorf("error creating bookings table %v", err)
+	}
+	
+	return nil
 
 }

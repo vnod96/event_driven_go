@@ -6,6 +6,7 @@ import (
 	stdHTTP "net/http"
 
 	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	watermillMsg "github.com/ThreeDotsLabs/watermill/message"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -16,6 +17,7 @@ import (
 	ticketsHttp "tickets/http"
 	"tickets/message"
 	"tickets/message/event"
+	"tickets/outbox"
 	"tickets/worker"
 )
 
@@ -30,18 +32,22 @@ func New(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
 	fileService worker.FileService,
+	deadNation worker.DeadNationService,
 	redisClient *redis.Client,
 ) Service {
 	logger := watermill.NewSlogLogger(nil)
 	pub := message.NewRedisPublisher(redisClient, logger)
+	sub := outbox.NewPostgresSubscriber(dbConn.DB, logger)
 	eb := event.NewEventBus(pub, logger)
 	repo := db.NewTicketReposity(dbConn)
-	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, eb)
-	watermillRouter := message.NewWatermillRouter(event.NewEventProcessorConfig(redisClient, logger), eventsHandler, logger)
-	echoRouter := ticketsHttp.NewHttpRouter(eb, repo)
+	showRepo := db.NewShowRepository(dbConn)
+	bookingRepo := db.NewBookingRepository(dbConn, func(pub watermillMsg.Publisher) *cqrs.EventBus { return event.NewEventBus(pub, logger) })
+	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation)
+	watermillRouter := message.NewWatermillRouter(sub, pub, event.NewEventProcessorConfig(redisClient, logger), eventsHandler, logger)
+	echoRouter := ticketsHttp.NewHttpRouter(eb, repo, showRepo, bookingRepo)
 
 	return Service{
-		db: dbConn,
+		db:              dbConn,
 		echoRouter:      echoRouter,
 		watermillRouter: watermillRouter,
 	}

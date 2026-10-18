@@ -1,0 +1,48 @@
+package outbox
+
+import (
+	"database/sql"
+	"fmt"
+	"time"
+
+	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
+	"github.com/ThreeDotsLabs/watermill"
+	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	"github.com/ThreeDotsLabs/watermill/components/forwarder"
+	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/jmoiron/sqlx"
+)
+
+func NewPostgresSubscriber(db *sql.DB, logger watermill.LoggerAdapter) *watermillSQL.Subscriber {
+	sub, err := watermillSQL.NewSubscriber(db, watermillSQL.SubscriberConfig{
+		PollInterval:     time.Millisecond * 100,
+		InitializeSchema: true,
+		SchemaAdapter:    watermillSQL.DefaultPostgreSQLSchema{},
+		OffsetsAdapter:   watermillSQL.DefaultPostgreSQLOffsetsAdapter{},
+	}, logger)
+	if err != nil {
+		panic(fmt.Errorf("failed to create new watermill sql subscriber: %w", err))
+	}
+	return sub
+}
+
+func NewPublisherForDb(tx *sqlx.Tx) (message.Publisher, error) {
+	var pub message.Publisher
+	var err error
+
+	pub, err = watermillSQL.NewPublisher(tx, watermillSQL.PublisherConfig{
+		SchemaAdapter: watermillSQL.DefaultPostgreSQLSchema{},
+	}, watermill.NewSlogLogger(nil))
+	if err != nil {
+		return nil, err
+	}
+
+	pub = log.CorrelationPublisherDecorator{pub}
+
+	pub = forwarder.NewPublisher(pub, forwarder.PublisherConfig{
+		ForwarderTopic: outboxTopic,
+	})
+	pub = log.CorrelationPublisherDecorator{pub}
+
+	return pub, nil
+}
