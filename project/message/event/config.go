@@ -15,14 +15,30 @@ var marshaler = cqrs.JSONMarshaler{
 func NewEventProcessorConfig(redisClient *redis.Client, logger watermill.LoggerAdapter) cqrs.EventProcessorConfig {
 	return cqrs.EventProcessorConfig{
 		GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
-			return params.EventName, nil
+			return "events." + params.EventName, nil
 		},
 		Logger:    logger,
 		Marshaler: marshaler,
 		SubscriberConstructor: func(params cqrs.EventProcessorSubscriberConstructorParams) (message.Subscriber, error) {
 			return redisstream.NewSubscriber(redisstream.SubscriberConfig{
 				Client:        redisClient,
-				ConsumerGroup: "svc_tickets." + params.HandlerName,
+				ConsumerGroup: "events." + params.HandlerName,
+			}, logger)
+		},
+	}
+}
+
+func NewCommandProcessorConfig(rc *redis.Client, logger watermill.LoggerAdapter) cqrs.CommandProcessorConfig {
+	return cqrs.CommandProcessorConfig{
+		GenerateSubscribeTopic: func(param cqrs.CommandProcessorGenerateSubscribeTopicParams) (string, error) {
+			return "commands." + param.CommandName, nil
+		},
+		Logger: logger,
+		Marshaler: marshaler,
+		SubscriberConstructor: func(params cqrs.CommandProcessorSubscriberConstructorParams) (message.Subscriber, error) {
+			return redisstream.NewSubscriber(redisstream.SubscriberConfig{
+				Client: rc,
+				ConsumerGroup: "commands." + params.HandlerName,
 			}, logger)
 		},
 	}

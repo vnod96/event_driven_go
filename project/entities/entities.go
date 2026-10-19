@@ -105,3 +105,15 @@ type BookingMade struct {
     CustomerEmail   string `json:"customer_email"`
     ShowID          string `json:"show_id"`
 }
+
+type RefundTicket struct {
+	Header MessageHeader `json:"header"`
+
+	TicketID string `json:"ticket_id"`
+}
+
+type PaymentRefund struct {
+	TicketID       string
+	RefundReason   string
+	IdempotencyKey string
+}

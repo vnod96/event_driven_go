@@ -34,17 +34,19 @@ func New(
 	fileService worker.FileService,
 	deadNation worker.DeadNationService,
 	redisClient *redis.Client,
+	paymentService worker.PaymentService,
 ) Service {
 	logger := watermill.NewSlogLogger(nil)
 	pub := message.NewRedisPublisher(redisClient, logger)
 	sub := outbox.NewPostgresSubscriber(dbConn.DB, logger)
 	eb := event.NewEventBus(pub, logger)
+	cb := event.NewCommandBus(pub, logger);
 	repo := db.NewTicketReposity(dbConn)
 	showRepo := db.NewShowRepository(dbConn)
 	bookingRepo := db.NewBookingRepository(dbConn, func(pub watermillMsg.Publisher) *cqrs.EventBus { return event.NewEventBus(pub, logger) })
-	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation)
-	watermillRouter := message.NewWatermillRouter(sub, pub, event.NewEventProcessorConfig(redisClient, logger), eventsHandler, logger)
-	echoRouter := ticketsHttp.NewHttpRouter(eb, repo, showRepo, bookingRepo)
+	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService)
+	watermillRouter := message.NewWatermillRouter(sub, pub, event.NewEventProcessorConfig(redisClient, logger), event.NewCommandProcessorConfig(redisClient, logger), eventsHandler, logger)
+	echoRouter := ticketsHttp.NewHttpRouter(eb, cb, repo, showRepo, bookingRepo)
 
 	return Service{
 		db:              dbConn,

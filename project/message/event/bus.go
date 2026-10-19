@@ -10,15 +10,29 @@ import (
 func NewEventBus(pub message.Publisher, logger watermill.LoggerAdapter) *cqrs.EventBus {
 	eb, err := cqrs.NewEventBusWithConfig(pub, cqrs.EventBusConfig{
 		GeneratePublishTopic: func(params cqrs.GenerateEventPublishTopicParams) (string, error) {
-			return params.EventName, nil
+			return "events." + params.EventName, nil
 		},
 		Marshaler: marshaler,
-		Logger: logger,
+		Logger:    logger,
 	})
 	if err != nil {
 		panic(err)
 	}
 	return eb
+}
+
+func NewCommandBus(pub message.Publisher, logger watermill.LoggerAdapter) *cqrs.CommandBus {
+	cb, err := cqrs.NewCommandBusWithConfig(pub, cqrs.CommandBusConfig{
+		GeneratePublishTopic: func(params cqrs.CommandBusGeneratePublishTopicParams) (string, error) {
+			return "commands." + params.CommandName, nil
+		},
+		Marshaler: marshaler,
+		Logger:    logger,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return cb
 }
 
 type CorrelationPublisherDecorator struct {

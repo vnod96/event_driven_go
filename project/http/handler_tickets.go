@@ -86,3 +86,15 @@ func (h Handler) GetTickets(c echo.Context) error {
 	c.JSON(200, tkts)
 	return nil
 }
+
+func (h Handler) RefundTicket(c echo.Context) error {
+	ticketID := c.Param("ticket_id")
+	err := h.cmdBus.Send(c.Request().Context(), entities.RefundTicket{
+		Header: entities.NewMessageHeader(),
+		TicketID: ticketID,
+	})
+	if err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusAccepted)
+}

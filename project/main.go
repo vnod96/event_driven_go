@@ -42,6 +42,7 @@ func main() {
 	receiptsService := adapters.NewReceiptsServiceClient(apiClients)
 	fileService := adapters.NewFileServiceClient(apiClients)
 	deadNation := adapters.NewDeadNationClient(apiClients);
+	paymentService:= adapters.NewPaymentsServiceClient(apiClients)
 
 	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
 	defer redisClient.Close()
@@ -56,6 +57,7 @@ func main() {
 		fileService,
 		deadNation,
 		redisClient,
+		paymentService,
 	).Run(ctx)
 	if err != nil {
 		panic(err)

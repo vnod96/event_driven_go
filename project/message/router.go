@@ -13,15 +13,44 @@ func NewWatermillRouter(
 	postgresSubscriber message.Subscriber,
 	publisher message.Publisher,
 	config cqrs.EventProcessorConfig,
+	cmdConfig cqrs.CommandProcessorConfig,
 	handler event.Handler,
 	logger watermill.LoggerAdapter,
 ) *message.Router {
 	router := message.NewDefaultRouter(logger)
 	useMiddlewares(router, logger)
 	outbox.AddForwarder(postgresSubscriber, publisher, router, logger)
-	p, err := cqrs.NewEventProcessorWithConfig(router, config)
+	err := AddEventProcessor(router, handler, config)
 	if err != nil {
 		panic(err)
+	}
+	err = AddCommandProcessor(router, handler, cmdConfig)
+	if err != nil {
+		panic(err)
+	}
+	return router
+}
+
+func AddCommandProcessor(router *message.Router, handler event.Handler, cmdConfig cqrs.CommandProcessorConfig) error {
+	c, err := cqrs.NewCommandProcessorWithConfig(router, cmdConfig)
+	if err != nil {
+		return err
+	}
+
+	err = c.AddHandlers(
+		cqrs.NewCommandHandler(
+			"refund-ticket-handler",
+			handler.VoidReceipt,
+		),
+	)
+
+	return nil
+}
+
+func AddEventProcessor(router *message.Router, handler event.Handler, config cqrs.EventProcessorConfig) error {
+	p, err := cqrs.NewEventProcessorWithConfig(router, config)
+	if err != nil {
+		return err
 	}
 	err = p.AddHandlers(
 		cqrs.NewEventHandler(
@@ -53,8 +82,5 @@ func NewWatermillRouter(
 			handler.MakeBooking,
 		),
 	)
-	if err != nil {
-		panic(err)
-	}
-	return router
+	return err
 }

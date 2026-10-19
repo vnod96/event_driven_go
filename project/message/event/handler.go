@@ -15,10 +15,11 @@ type Handler struct {
 	showRepository   db.ShowRepository
 	deadNationClient worker.DeadNationService
 	eventBus         *cqrs.EventBus
+	paymentService   worker.PaymentService
 }
 
 func NewHandler(receiptService worker.ReceiptsService, spreadsheetAPI worker.SpreadsheetsAPI, fileService worker.FileService, repo db.TicketRepository,
-	showRepo db.ShowRepository, eventBus *cqrs.EventBus, deadNation worker.DeadNationService) Handler {
+	showRepo db.ShowRepository, eventBus *cqrs.EventBus, deadNation worker.DeadNationService, paymentService worker.PaymentService) Handler {
 	if receiptService == nil {
 		panic("receipt service missing")
 	}
@@ -27,6 +28,10 @@ func NewHandler(receiptService worker.ReceiptsService, spreadsheetAPI worker.Spr
 	}
 	if fileService == nil {
 		panic("fileService is missing")
+	}
+
+	if paymentService == nil {
+		panic("paymentService is missing")
 	}
 
 	if repo == nil {
@@ -47,5 +52,6 @@ func NewHandler(receiptService worker.ReceiptsService, spreadsheetAPI worker.Spr
 		eventBus:         eventBus,
 		showRepository:   showRepo,
 		deadNationClient: deadNation,
+		paymentService: paymentService,
 	}
 }

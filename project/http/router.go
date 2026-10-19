@@ -11,6 +11,7 @@ import (
 
 func NewHttpRouter(
 	eventBus *cqrs.EventBus,
+	cmdBus *cqrs.CommandBus,
 	repo db.TicketRepository,
 	showRepo db.ShowRepository,
 	bookingRepo db.BookingRepository,
@@ -19,6 +20,7 @@ func NewHttpRouter(
 
 	handler := Handler{
 		eventBus: eventBus,
+		cmdBus: cmdBus,
 		repo : repo,
 		showRepo: showRepo,
 		bookingRepo: bookingRepo,
@@ -29,6 +31,8 @@ func NewHttpRouter(
 
 	e.POST("/shows", handler.CreateShow)
 	e.POST("/book-tickets", handler.BookTickets)
+
+	e.PUT("/ticket-refund/:ticket_id", handler.RefundTicket)
 
 	e.GET("tickets", handler.GetTickets)
 

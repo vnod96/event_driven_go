@@ -32,6 +32,7 @@ type SpreadsheetsAPI interface {
 
 type ReceiptsService interface {
 	IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed) error
+	VoidReceipt(ctx context.Context, payload *entities.RefundTicket) error
 }
 
 type FileService interface {
@@ -40,6 +41,10 @@ type FileService interface {
 
 type DeadNationService interface {
 	PostTicket(ctx context.Context, e *entities.BookingMade, deadNationId uuid.UUID) error
+}
+
+type PaymentService interface {
+	RefundPayment(ctx context.Context, refundPayment entities.PaymentRefund) error
 }
 
 func NewWorker(
