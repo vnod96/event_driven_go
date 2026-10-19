@@ -1,4 +1,4 @@
-exercise_id = "5ee9cb23-20b3-4402-a5de-79717af0b90e"
-directory = "project"
+exercise_id = "6e2521f0-dfe5-4649-a8a9-efe8b6307650"
+directory = "12-cqrs-commands/01-command-vs-event"
 is_text_only = false
 is_optional = false
