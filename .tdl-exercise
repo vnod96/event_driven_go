@@ -1,4 +1,4 @@
-exercise_id = "9db2410c-e147-4db7-a963-fcc4ff4693d2"
-directory = "14-message-ordering/01-ordering"
+exercise_id = "c31236ce-b4a3-4859-bc47-d34addf14c9b"
+directory = "15-data-lake/01-data-lake"
 is_text_only = true
-is_optional = false
+is_optional = true

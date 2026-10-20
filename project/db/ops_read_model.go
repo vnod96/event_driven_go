@@ -101,7 +101,7 @@ func (r OpsBookingReadModel) OnTicketBookingCOnfirmed(ctx context.Context, paylo
 		tkt.CustomerEmail = payload.CustomerEmail
 		tkt.PriceAmount = payload.Price.Amount
 		tkt.PriceCurrency = payload.Price.Currency
-		tkt.Status = "confirmed"
+		tkt.ConfirmedAt = payload.Header.PublishedAt
 		b.Tickets[payload.TicketID] = tkt
 		return b, nil
 	})
@@ -115,7 +115,7 @@ func (r OpsBookingReadModel) OnTicketPrinted(ctx context.Context, payload *entit
 }
 func (r OpsBookingReadModel) OnTicketRefunded(ctx context.Context, payload *entities.TicketRefunded) error {
 	return r.updateReadModelByTicketID(ctx, payload.TicketID, func(ticket entities.OpsTicket) (entities.OpsTicket, error) {
-		ticket.Status = "refunded"
+		ticket.RefundedAt = payload.Header.PublishedAt
 		return ticket, nil
 	})
 }

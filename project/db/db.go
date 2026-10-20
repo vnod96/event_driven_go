@@ -35,8 +35,22 @@ func (t *PostgresTicketRepostory) Save(context context.Context, ticket *entities
 }
 
 func (t *PostgresTicketRepostory) Remove(context context.Context, ticketId string) error {
-	_, err := t.db.ExecContext(context, "DELETE FROM tickets WHERE ticket_id=$1", ticketId)
-	return err;
+	resp, err := t.db.ExecContext(context, "UPDATE tickets SET deleted_at = CURRENT_TIMESTAMP WHERE ticket_id=$1 AND deleted_at IS NULL;", ticketId)
+	if err != nil {
+		return fmt.Errorf("failed to delete: %w", err)
+	}
+
+	rows, err := resp.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check affected rows: %w", err)
+	}
+
+	if rows == 0 {
+		return fmt.Errorf("ticket not available")
+	}
+	
+	
+	return nil;
 }
 
 func (t *PostgresTicketRepostory) FindAll(ctx context.Context) ([]entities.Ticket, error) {
@@ -50,7 +64,9 @@ func (t *PostgresTicketRepostory) FindAll(ctx context.Context) ([]entities.Ticke
 			price_currency as "price.currency",
 			customer_email
 		FROM
-			tickets;
+			tickets
+		WHERE
+			deleted_at is null;
 		`,
 	)
 
