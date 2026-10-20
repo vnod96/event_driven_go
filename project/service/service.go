@@ -45,7 +45,7 @@ func New(
 	cb := event.NewCommandBus(pub, logger);
 	repo := db.NewTicketReposity(dbConn)
 	showRepo := db.NewShowRepository(dbConn)
-	opsReadModel := db.NewOpsBookingReadModel(dbConn)
+	opsReadModel := db.NewOpsBookingReadModel(dbConn, eb)
 	bookingRepo := db.NewBookingRepository(dbConn, func(pub watermillMsg.Publisher) *cqrs.EventBus { return event.NewEventBus(pub, logger) })
 	eventRepo := db.NewPostgresEventRepository(dbConn)
 	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService, opsReadModel, eventRepo)

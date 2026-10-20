@@ -8,7 +8,7 @@ import (
 )
 
 
-func (h *Handler) MakeBooking(ctx context.Context, e *entities.BookingMade) error {
+func (h *Handler) MakeBooking(ctx context.Context, e *entities.BookingMade_v1) error {
 	show, err := h.showRepository.ShowByID(ctx, e.ShowID)
 	if err != nil {
 		return err

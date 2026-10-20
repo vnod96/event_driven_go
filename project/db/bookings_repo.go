@@ -67,7 +67,7 @@ func (r *PostgresBookingRepository) Save(ctx context.Context, booking *entities.
 				return fmt.Errorf("could not create event bus: %w", err)
 			}
 			bus := r.newEventBus(pub)
-			bus.Publish(ctx, entities.BookingMade{
+			bus.Publish(ctx, entities.BookingMade_v1{
 				Header: entities.NewMessageHeader(),
 				BookingID:       booking.BookingID,
 				CustomerEmail:   booking.CustomerEmail,

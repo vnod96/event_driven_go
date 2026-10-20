@@ -6,7 +6,7 @@ import (
 	"tickets/entities"
 )
 
-func (h Handler) RemoveTicket(ctx context.Context, tkt *entities.TicketBookingCanceled) error {
+func (h Handler) RemoveTicket(ctx context.Context, tkt *entities.TicketBookingCanceled_v1) error {
 	fmt.Println("removing ticket.")
 	return h.ticketRepository.Remove(ctx, tkt.TicketID)
 }

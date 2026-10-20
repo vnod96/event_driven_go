@@ -6,7 +6,7 @@ import (
 	"tickets/entities"
 )
 
-func (h Handler) PrintFile(ctx context.Context, tkt *entities.TicketBookingConfirmed) error {
+func (h Handler) PrintFile(ctx context.Context, tkt *entities.TicketBookingConfirmed_v1) error {
 	fileId := tkt.TicketID + "-ticket.html"
 	fileContent := fmt.Sprintf(`
 		TicketID : %s
@@ -18,7 +18,7 @@ func (h Handler) PrintFile(ctx context.Context, tkt *entities.TicketBookingConfi
 		return err
 	}
 
-	return h.eventBus.Publish(ctx, entities.TicketPrinted{
+	return h.eventBus.Publish(ctx, entities.TicketPrinted_v1{
 		Header:   entities.NewMessageHeader(),
 		TicketID: tkt.TicketID,
 		FileName: fileId,

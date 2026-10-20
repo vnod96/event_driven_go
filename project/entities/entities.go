@@ -17,7 +17,7 @@ type Ticket struct {
 	Price         Money  `json:"price" db:"price"`
 }
 
-func ToTicket(confirmedEvent *TicketBookingConfirmed) *Ticket {
+func ToTicket(confirmedEvent *TicketBookingConfirmed_v1) *Ticket {
 	return &Ticket{
 		TicketID:      confirmedEvent.TicketID,
 		CustomerEmail: confirmedEvent.CustomerEmail,
@@ -36,7 +36,7 @@ type IssueReceiptPayload struct {
 	Price    Money  `json:"price"`
 }
 
-type TicketBookingConfirmed struct {
+type TicketBookingConfirmed_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID      string `json:"ticket_id"`
@@ -45,7 +45,7 @@ type TicketBookingConfirmed struct {
 	BookingID     string `json:"booking_id"`
 }
 
-type TicketBookingCanceled struct {
+type TicketBookingCanceled_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID      string `json:"ticket_id"`
@@ -53,7 +53,7 @@ type TicketBookingCanceled struct {
 	Price         Money  `json:"price"`
 }
 
-type TicketPrinted struct {
+type TicketPrinted_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID string `json:"ticket_id"`
@@ -98,7 +98,7 @@ type Booking struct {
 	CustomerEmail   string `json:"customer_email" db:"customer_email"`
 }
 
-type BookingMade struct {
+type BookingMade_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	NumberOfTickets int    `json:"number_of_tickets"`
@@ -107,7 +107,7 @@ type BookingMade struct {
 	ShowID          string `json:"show_id"`
 }
 
-type RefundTicket struct {
+type RefundTicket_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID string `json:"ticket_id"`
@@ -119,7 +119,7 @@ type PaymentRefund struct {
 	IdempotencyKey string
 }
 
-type TicketReceiptIssued struct {
+type TicketReceiptIssued_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID      string `json:"ticket_id"`
@@ -133,7 +133,7 @@ type IssueReceiptResponse struct {
 	IssuedAt      time.Time `json:"issued_at"`
 }
 
-type TicketRefunded struct {
+type TicketRefunded_v1 struct {
 	Header MessageHeader `json:"header"`
 
 	TicketID string `json:"ticket_id"`
@@ -166,4 +166,18 @@ type OpsTicket struct {
 
 type Event struct {
 	Header MessageHeader `json:"header"`
+}
+
+type EventType interface {
+	IsInternal() bool
+}
+
+type InternalOpsReadModelUpdated struct {
+	Header MessageHeader `json:"header"`
+	
+	BookingID uuid.UUID `json:"booking_id"`
+}
+
+func (i InternalOpsReadModelUpdated) IsInternal() bool {
+	return true
 }

@@ -23,7 +23,7 @@ func NewReceiptsServiceClient(clients *clients.Clients) *ReceiptsServiceClient {
 	return &ReceiptsServiceClient{clients: clients}
 }
 
-func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed) (entities.IssueReceiptResponse, error) {
+func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed_v1) (entities.IssueReceiptResponse, error) {
 	key := payload.Header.IdempotencyKey + payload.TicketID
 	resp, err := c.clients.Receipts.PutReceiptsWithResponse(ctx, receipts.CreateReceipt{
 		IdempotencyKey: &key,
@@ -55,7 +55,7 @@ func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, payload *entiti
 	}
 }
 
-func (c ReceiptsServiceClient) VoidReceipt(ctx context.Context, payload *entities.RefundTicket) error {
+func (c ReceiptsServiceClient) VoidReceipt(ctx context.Context, payload *entities.RefundTicket_v1) error {
 	resp, err := c.clients.Receipts.PutVoidReceiptWithResponse(ctx, receipts.VoidReceiptRequest{
 		IdempotentId: &payload.Header.IdempotencyKey,
 		Reason: "customer requested refund",

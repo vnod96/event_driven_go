@@ -1,6 +1,8 @@
 package event
 
 import (
+	"tickets/entities"
+
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
@@ -10,6 +12,10 @@ import (
 func NewEventBus(pub message.Publisher, logger watermill.LoggerAdapter) *cqrs.EventBus {
 	eb, err := cqrs.NewEventBusWithConfig(pub, cqrs.EventBusConfig{
 		GeneratePublishTopic: func(params cqrs.GenerateEventPublishTopicParams) (string, error) {
+			_, ok := params.Event.(entities.EventType)
+			if ok {
+				return "internal-events.svc-tickets." + params.EventName, nil
+			}
 			return "events", nil
 		},
 		Marshaler: marshaler,

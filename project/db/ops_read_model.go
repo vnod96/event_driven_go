@@ -10,17 +10,20 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type OpsBookingReadModel struct {
 	db *sqlx.DB
+	eb *cqrs.EventBus
 }
 
-func NewOpsBookingReadModel(db *sqlx.DB) *OpsBookingReadModel {
+func NewOpsBookingReadModel(db *sqlx.DB, eb *cqrs.EventBus) *OpsBookingReadModel {
 	return &OpsBookingReadModel{
 		db: db,
+		eb: eb,
 	}
 }
 
@@ -71,7 +74,7 @@ func (r OpsBookingReadModel) ReservationReadModel(ctx context.Context, bookingID
 	return r.findReadModelByBookingID(ctx, bookingID, r.db)
 }
 
-func (r OpsBookingReadModel) OnBookingMade(ctx context.Context, payload *entities.BookingMade) error {
+func (r OpsBookingReadModel) OnBookingMade(ctx context.Context, payload *entities.BookingMade_v1) error {
 	readModel := entities.OpsBooking{
 		BookingID:  uuid.MustParse(payload.BookingID),
 		BookedAt:   payload.Header.PublishedAt,
@@ -81,17 +84,20 @@ func (r OpsBookingReadModel) OnBookingMade(ctx context.Context, payload *entitie
 	if err != nil {
 		return fmt.Errorf("could not create read model: %w", err)
 	}
-	return nil
+	return r.eb.Publish(ctx, &entities.InternalOpsReadModelUpdated{
+		Header: entities.NewMessageHeader(),
+		BookingID: uuid.MustParse(payload.BookingID),
+	})
 }
 
-func (r OpsBookingReadModel) OnTicketReceiptIssued(ctx context.Context, payload *entities.TicketReceiptIssued) error {
+func (r OpsBookingReadModel) OnTicketReceiptIssued(ctx context.Context, payload *entities.TicketReceiptIssued_v1) error {
 	return r.updateReadModelByTicketID(ctx, payload.TicketID, func(ticket entities.OpsTicket) (entities.OpsTicket, error) {
 		ticket.ReceiptIssuedAt = payload.IssuedAt
 		ticket.ReceiptNumber = payload.ReceiptNumber
 		return ticket, nil
 	})
 }
-func (r OpsBookingReadModel) OnTicketBookingCOnfirmed(ctx context.Context, payload *entities.TicketBookingConfirmed) error {
+func (r OpsBookingReadModel) OnTicketBookingCOnfirmed(ctx context.Context, payload *entities.TicketBookingConfirmed_v1) error {
 	return r.updateReadModelByBookingID(ctx, payload.BookingID, func(b entities.OpsBooking) (entities.OpsBooking, error) {
 		tkt, ok := b.Tickets[payload.TicketID]
 		if !ok {
@@ -106,14 +112,14 @@ func (r OpsBookingReadModel) OnTicketBookingCOnfirmed(ctx context.Context, paylo
 		return b, nil
 	})
 }
-func (r OpsBookingReadModel) OnTicketPrinted(ctx context.Context, payload *entities.TicketPrinted) error {
+func (r OpsBookingReadModel) OnTicketPrinted(ctx context.Context, payload *entities.TicketPrinted_v1) error {
 	return r.updateReadModelByTicketID(ctx, payload.TicketID, func(ticket entities.OpsTicket) (entities.OpsTicket, error) {
 		ticket.PrintedAt = payload.Header.PublishedAt
 		ticket.PrintedFileName = payload.FileName
 		return ticket, nil
 	})
 }
-func (r OpsBookingReadModel) OnTicketRefunded(ctx context.Context, payload *entities.TicketRefunded) error {
+func (r OpsBookingReadModel) OnTicketRefunded(ctx context.Context, payload *entities.TicketRefunded_v1) error {
 	return r.updateReadModelByTicketID(ctx, payload.TicketID, func(ticket entities.OpsTicket) (entities.OpsTicket, error) {
 		ticket.RefundedAt = payload.Header.PublishedAt
 		return ticket, nil
@@ -149,7 +155,7 @@ func (r OpsBookingReadModel) updateReadModelByBookingID(
 	bookingID string,
 	updateFunc func(ticket entities.OpsBooking) (entities.OpsBooking, error),
 ) (err error) {
-	return updateInTx(
+	err = updateInTx(
 		ctx,
 		r.db,
 		sql.LevelRepeatableRead,
@@ -170,6 +176,13 @@ func (r OpsBookingReadModel) updateReadModelByBookingID(
 			return r.updateReadModel(ctx, tx, updatedRm)
 		},
 	)
+	if err != nil {
+		return err
+	}
+	return r.eb.Publish(ctx, &entities.InternalOpsReadModelUpdated{
+		Header: entities.NewMessageHeader(),
+		BookingID: uuid.MustParse(bookingID),
+	})
 }
 
 func (r OpsBookingReadModel) updateReadModelByTicketID(
@@ -199,7 +212,15 @@ func (r OpsBookingReadModel) updateReadModelByTicketID(
 
 			rm.Tickets[ticketID] = updatedRm
 
-			return r.updateReadModel(ctx, tx, rm)
+			err = r.updateReadModel(ctx, tx, rm)
+			if err != nil {
+				return err
+			}
+			return r.eb.Publish(ctx, &entities.InternalOpsReadModelUpdated{
+				Header: entities.NewMessageHeader(),
+				BookingID: rm.BookingID,
+			})
+			
 		},
 	)
 }

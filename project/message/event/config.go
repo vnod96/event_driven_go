@@ -1,6 +1,8 @@
 package event
 
 import (
+	"tickets/entities"
+
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
@@ -15,6 +17,11 @@ var marshaler = cqrs.JSONMarshaler{
 func NewEventProcessorConfig(redisClient *redis.Client, logger watermill.LoggerAdapter) cqrs.EventProcessorConfig {
 	return cqrs.EventProcessorConfig{
 		GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
+			handlerEvent := params.EventHandler.NewEvent()
+			_, ok := handlerEvent.(entities.EventType)
+			if ok {
+				return "internal-events.svc-tickets." + params.EventName, nil
+			}
 			return "events." + params.EventName, nil
 		},
 		Logger:    logger,

@@ -31,8 +31,8 @@ type SpreadsheetsAPI interface {
 }
 
 type ReceiptsService interface {
-	IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed) (entities.IssueReceiptResponse, error)
-	VoidReceipt(ctx context.Context, payload *entities.RefundTicket) error
+	IssueReceipt(ctx context.Context, payload *entities.TicketBookingConfirmed_v1) (entities.IssueReceiptResponse, error)
+	VoidReceipt(ctx context.Context, payload *entities.RefundTicket_v1) error
 }
 
 type FileService interface {
@@ -40,7 +40,7 @@ type FileService interface {
 }
 
 type DeadNationService interface {
-	PostTicket(ctx context.Context, e *entities.BookingMade, deadNationId uuid.UUID) error
+	PostTicket(ctx context.Context, e *entities.BookingMade_v1, deadNationId uuid.UUID) error
 }
 
 type PaymentService interface {

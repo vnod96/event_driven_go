@@ -19,7 +19,7 @@ func NewDeadNationClient(clients *clients.Clients) *DeadNationClient {
 	}
 }
 
-func (d *DeadNationClient) PostTicket(ctx context.Context, e *entities.BookingMade, deadNationId uuid.UUID) error {
+func (d *DeadNationClient) PostTicket(ctx context.Context, e *entities.BookingMade_v1, deadNationId uuid.UUID) error {
 	_, err := d.clients.DeadNation.PostTicketBookingWithResponse(ctx, dead_nation.PostTicketBookingRequest{
 		BookingId:       uuid.MustParse(e.BookingID),
 		CustomerAddress: e.CustomerEmail,

@@ -49,7 +49,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 	for _, ticket := range request.Tickets {
 		switch ticket.Status {
 		case "confirmed":
-			ticketEvent := entities.TicketBookingConfirmed{
+			ticketEvent := entities.TicketBookingConfirmed_v1{
 				Header:        entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
@@ -62,7 +62,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 			}
 
 		case "canceled":
-			ticketEvent := entities.TicketBookingCanceled{
+			ticketEvent := entities.TicketBookingCanceled_v1{
 				Header:        entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
@@ -92,7 +92,7 @@ func (h Handler) GetTickets(c echo.Context) error {
 
 func (h Handler) RefundTicket(c echo.Context) error {
 	ticketID := c.Param("ticket_id")
-	err := h.cmdBus.Send(c.Request().Context(), entities.RefundTicket{
+	err := h.cmdBus.Send(c.Request().Context(), entities.RefundTicket_v1{
 		Header:   entities.NewMessageHeader(),
 		TicketID: ticketID,
 	})
