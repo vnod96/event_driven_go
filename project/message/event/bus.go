@@ -10,7 +10,7 @@ import (
 func NewEventBus(pub message.Publisher, logger watermill.LoggerAdapter) *cqrs.EventBus {
 	eb, err := cqrs.NewEventBusWithConfig(pub, cqrs.EventBusConfig{
 		GeneratePublishTopic: func(params cqrs.GenerateEventPublishTopicParams) (string, error) {
-			return "events." + params.EventName, nil
+			return "events", nil
 		},
 		Marshaler: marshaler,
 		Logger:    logger,

@@ -48,7 +48,16 @@ func InitializeSchema(db *sqlx.DB) error {
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS read_model_ops_bookings (
     booking_id UUID PRIMARY KEY,
     payload JSONB NOT NULL
-	);`)
+	);
+
+	CREATE TABLE IF NOT EXISTS events (
+    event_id UUID PRIMARY KEY,
+    published_at TIMESTAMP NOT NULL,
+    event_name VARCHAR(255) NOT NULL,
+    event_payload JSONB NOT NULL
+	);
+
+	`)
 
 	if err != nil {
 		return fmt.Errorf("error creating ops table: %w", err)

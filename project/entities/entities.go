@@ -162,3 +162,8 @@ type OpsTicket struct {
 	ReceiptIssuedAt time.Time `json:"receipt_issued_at"` // from TicketReceiptIssued event
 	ReceiptNumber   string    `json:"receipt_number"`    // from TicketReceiptIssued event
 }
+
+
+type Event struct {
+	Header MessageHeader `json:"header"`
+}

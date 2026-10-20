@@ -39,14 +39,17 @@ func New(
 	logger := watermill.NewSlogLogger(nil)
 	pub := message.NewRedisPublisher(redisClient, logger)
 	sub := outbox.NewPostgresSubscriber(dbConn.DB, logger)
+	redisSub := message.NewRedisSubscriber(redisClient, "svc-tickets.events_splitter", logger)
+	redisDatalakeSub := message.NewRedisSubscriber(redisClient, "svc-tickets.store_to_data_lake", logger)
 	eb := event.NewEventBus(pub, logger)
 	cb := event.NewCommandBus(pub, logger);
 	repo := db.NewTicketReposity(dbConn)
 	showRepo := db.NewShowRepository(dbConn)
 	opsReadModel := db.NewOpsBookingReadModel(dbConn)
 	bookingRepo := db.NewBookingRepository(dbConn, func(pub watermillMsg.Publisher) *cqrs.EventBus { return event.NewEventBus(pub, logger) })
-	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService, opsReadModel)
-	watermillRouter := message.NewWatermillRouter(sub, pub, event.NewEventProcessorConfig(redisClient, logger), event.NewCommandProcessorConfig(redisClient, logger), eventsHandler, logger)
+	eventRepo := db.NewPostgresEventRepository(dbConn)
+	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService, opsReadModel, eventRepo)
+	watermillRouter := message.NewWatermillRouter(sub, redisSub, redisDatalakeSub, pub, event.NewEventProcessorConfig(redisClient, logger), event.NewCommandProcessorConfig(redisClient, logger), eventsHandler, logger)
 	echoRouter := ticketsHttp.NewHttpRouter(eb, cb, repo, showRepo, bookingRepo, *opsReadModel)
 
 	return Service{

@@ -1,6 +1,9 @@
 package message
 
 import (
+	"encoding/json"
+	"fmt"
+	"tickets/entities"
 	"tickets/message/event"
 	"tickets/outbox"
 
@@ -11,6 +14,8 @@ import (
 
 func NewWatermillRouter(
 	postgresSubscriber message.Subscriber,
+	redisSubscriber message.Subscriber,
+	redisDataLakeSubscriber message.Subscriber,
 	publisher message.Publisher,
 	config cqrs.EventProcessorConfig,
 	cmdConfig cqrs.CommandProcessorConfig,
@@ -28,6 +33,41 @@ func NewWatermillRouter(
 	if err != nil {
 		panic(err)
 	}
+	router.AddConsumerHandler(
+		"event_splitter",
+		"events",
+		redisSubscriber,
+		func(msg *message.Message) error {
+			eventName := config.Marshaler.NameFromMessage(msg)
+			if eventName == "" {
+				return fmt.Errorf("event not found")
+			}
+			return publisher.Publish("events." + eventName, msg)
+		},
+	)
+
+	router.AddConsumerHandler(
+		"event_data_lake",
+		"events",
+		redisDataLakeSubscriber,
+		func(msg *message.Message) error {
+			eventName := config.Marshaler.NameFromMessage(msg)
+			if eventName == "" {
+				return fmt.Errorf("event not found")
+			}
+			var event entities.Event
+			if err := config.Marshaler.Unmarshal(msg, &event); err != nil {
+				return fmt.Errorf("cannot unmarshal : %w", err)
+			}
+
+			payload, err := json.Marshal(msg)
+			if err != nil {
+				return err
+			}
+			
+			return handler.EventRepository.Save(msg.Context(), &event,eventName, payload)
+		},
+	)
 	return router
 }
 

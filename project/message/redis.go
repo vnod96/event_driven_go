@@ -26,3 +26,14 @@ func NewRedisPublisher(rc *redis.Client, logger watermill.LoggerAdapter) message
 	}
 	return event.CorrelationPublisherDecorator{pub}
 }
+
+func NewRedisSubscriber(rc *redis.Client, consumerGroup string, logger watermill.LoggerAdapter) message.Subscriber {
+	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+		Client: rc,
+		ConsumerGroup: consumerGroup,
+	}, logger)
+	if err != nil {
+		panic(err)
+	}
+	return sub
+}

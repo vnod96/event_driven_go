@@ -17,10 +17,11 @@ type Handler struct {
 	eventBus         *cqrs.EventBus
 	paymentService   worker.PaymentService
 	OpsReadModel     *db.OpsBookingReadModel
+	EventRepository  db.EventRepository
 }
 
 func NewHandler(receiptService worker.ReceiptsService, spreadsheetAPI worker.SpreadsheetsAPI, fileService worker.FileService, repo db.TicketRepository,
-	showRepo db.ShowRepository, eventBus *cqrs.EventBus, deadNation worker.DeadNationService, paymentService worker.PaymentService, opsReadModel *db.OpsBookingReadModel) Handler {
+	showRepo db.ShowRepository, eventBus *cqrs.EventBus, deadNation worker.DeadNationService, paymentService worker.PaymentService, opsReadModel *db.OpsBookingReadModel, eventsRepo db.EventRepository) Handler {
 	if receiptService == nil {
 		panic("receipt service missing")
 	}
@@ -58,5 +59,6 @@ func NewHandler(receiptService worker.ReceiptsService, spreadsheetAPI worker.Spr
 		deadNationClient: deadNation,
 		paymentService:   paymentService,
 		OpsReadModel:     opsReadModel,
+		EventRepository:  eventsRepo,
 	}
 }
