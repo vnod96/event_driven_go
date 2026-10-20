@@ -81,6 +81,26 @@ func AddEventProcessor(router *message.Router, handler event.Handler, config cqr
 			"make-booking",
 			handler.MakeBooking,
 		),
+		cqrs.NewEventHandler(
+			"ops.BookingMade",
+			handler.OpsReadModel.OnBookingMade,
+		),
+		cqrs.NewEventHandler(
+			"ops.TicketBookingConfirmed",
+			handler.OpsReadModel.OnTicketBookingCOnfirmed,
+		),
+		cqrs.NewEventHandler(
+			"ops.TicketPrinted",
+			handler.OpsReadModel.OnTicketPrinted,
+		),
+		cqrs.NewEventHandler(
+			"ops.TicketReceiptIssued",
+			handler.OpsReadModel.OnTicketReceiptIssued,
+		),
+		cqrs.NewEventHandler(
+			"ops.TicketRefunded",
+			handler.OpsReadModel.OnTicketRefunded,
+		),
 	)
 	return err
 }

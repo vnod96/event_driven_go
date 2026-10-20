@@ -42,6 +42,7 @@ type TicketBookingConfirmed struct {
 	TicketID      string `json:"ticket_id"`
 	CustomerEmail string `json:"customer_email"`
 	Price         Money  `json:"price"`
+	BookingID     string `json:"booking_id"`
 }
 
 type TicketBookingCanceled struct {
@@ -91,19 +92,19 @@ type Show struct {
 }
 
 type Booking struct {
-	BookingID string `json:"booking_id" db:"booking_id"`
-	ShowID    string `json:"show_id" db:"show_id"`
-	NumberOfTickets int `json:"number_of_tickets" db:"number_of_tickets"`
-	CustomerEmail string `json:"customer_email" db:"customer_email"`
+	BookingID       string `json:"booking_id" db:"booking_id"`
+	ShowID          string `json:"show_id" db:"show_id"`
+	NumberOfTickets int    `json:"number_of_tickets" db:"number_of_tickets"`
+	CustomerEmail   string `json:"customer_email" db:"customer_email"`
 }
 
 type BookingMade struct {
-    Header MessageHeader `json:"header"`
+	Header MessageHeader `json:"header"`
 
-    NumberOfTickets int    `json:"number_of_tickets"`
-    BookingID       string `json:"booking_id"`
-    CustomerEmail   string `json:"customer_email"`
-    ShowID          string `json:"show_id"`
+	NumberOfTickets int    `json:"number_of_tickets"`
+	BookingID       string `json:"booking_id"`
+	CustomerEmail   string `json:"customer_email"`
+	ShowID          string `json:"show_id"`
 }
 
 type RefundTicket struct {
@@ -116,4 +117,48 @@ type PaymentRefund struct {
 	TicketID       string
 	RefundReason   string
 	IdempotencyKey string
+}
+
+type TicketReceiptIssued struct {
+	Header MessageHeader `json:"header"`
+
+	TicketID      string `json:"ticket_id"`
+	ReceiptNumber string `json:"receipt_number"`
+
+	IssuedAt time.Time `json:"issued_at"`
+}
+
+type IssueReceiptResponse struct {
+	ReceiptNumber string    `json:"receipt_number"`
+	IssuedAt      time.Time `json:"issued_at"`
+}
+
+type TicketRefunded struct {
+	Header MessageHeader `json:"header"`
+
+	TicketID string `json:"ticket_id"`
+}
+
+type OpsBooking struct {
+	BookingID uuid.UUID `json:"booking_id"` // from BookingMade event
+	BookedAt  time.Time `json:"booked_at"`  // from BookingMade event
+
+	Tickets map[string]OpsTicket `json:"tickets"` // Tickets added/updated by TicketBookingConfirmed, TicketRefunded, TicketPrinted, TicketReceiptIssued
+
+	LastUpdate time.Time `json:"last_update"` // updated when read model is updated
+}
+
+type OpsTicket struct {
+	PriceAmount   string `json:"price_amount"`   // from TicketBookingConfirmed event
+	PriceCurrency string `json:"price_currency"` // from TicketBookingConfirmed event
+	CustomerEmail string `json:"customer_email"` // from TicketBookingConfirmed event
+
+	// Status should be set to "confirmed" or "refunded"
+	Status string `json:"status"` // set to "confirmed" by TicketBookingConfirmed, "refunded" by TicketRefunded
+
+	PrintedAt       time.Time `json:"printed_at"`        // from TicketPrinted event
+	PrintedFileName string    `json:"printed_file_name"` // from TicketPrinted event
+
+	ReceiptIssuedAt time.Time `json:"receipt_issued_at"` // from TicketReceiptIssued event
+	ReceiptNumber   string    `json:"receipt_number"`    // from TicketReceiptIssued event
 }

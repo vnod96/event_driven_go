@@ -8,7 +8,7 @@ import (
 
 func InitializeSchema(db *sqlx.DB) error {
 
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS tickets 
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS tickets
 		( ticket_id UUID PRIMARY KEY,
 		 price_amount NUMERIC(10, 2) NOT NULL,
 		 price_currency CHAR(3) NOT NULL,
@@ -41,9 +41,18 @@ func InitializeSchema(db *sqlx.DB) error {
 	);`)
 
 	if err != nil {
-	return fmt.Errorf("error creating bookings table %v", err)
+		return fmt.Errorf("error creating bookings table %v", err)
 	}
-	
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS read_model_ops_bookings (
+    booking_id UUID PRIMARY KEY,
+    payload JSONB NOT NULL
+	);`)
+
+	if err != nil {
+		return fmt.Errorf("error creating ops table: %w", err)
+	}
+
 	return nil
 
 }

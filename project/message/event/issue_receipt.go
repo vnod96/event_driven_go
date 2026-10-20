@@ -8,5 +8,14 @@ import (
 
 func (h Handler) IssueReceipt(ctx context.Context, event *entities.TicketBookingConfirmed) error {
 	slog.Info("issueing receipt for ticket")
-	return h.receiptsService.IssueReceipt(ctx, event)
+	resp, err := h.receiptsService.IssueReceipt(ctx, event)
+	if err != nil {
+		return err
+	}
+	return h.eventBus.Publish(ctx, entities.TicketReceiptIssued {
+		Header: event.Header,
+		TicketID: event.TicketID,
+		ReceiptNumber: resp.ReceiptNumber,
+		IssuedAt: resp.IssuedAt,
+	})
 }

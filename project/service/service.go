@@ -43,10 +43,11 @@ func New(
 	cb := event.NewCommandBus(pub, logger);
 	repo := db.NewTicketReposity(dbConn)
 	showRepo := db.NewShowRepository(dbConn)
+	opsReadModel := db.NewOpsBookingReadModel(dbConn)
 	bookingRepo := db.NewBookingRepository(dbConn, func(pub watermillMsg.Publisher) *cqrs.EventBus { return event.NewEventBus(pub, logger) })
-	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService)
+	eventsHandler := event.NewHandler(receiptsService, spreadsheetsAPI, fileService, repo, showRepo, eb, deadNation, paymentService, opsReadModel)
 	watermillRouter := message.NewWatermillRouter(sub, pub, event.NewEventProcessorConfig(redisClient, logger), event.NewCommandProcessorConfig(redisClient, logger), eventsHandler, logger)
-	echoRouter := ticketsHttp.NewHttpRouter(eb, cb, repo, showRepo, bookingRepo)
+	echoRouter := ticketsHttp.NewHttpRouter(eb, cb, repo, showRepo, bookingRepo, *opsReadModel)
 
 	return Service{
 		db:              dbConn,

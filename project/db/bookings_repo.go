@@ -68,6 +68,7 @@ func (r *PostgresBookingRepository) Save(ctx context.Context, booking *entities.
 			}
 			bus := r.newEventBus(pub)
 			bus.Publish(ctx, entities.BookingMade{
+				Header: entities.NewMessageHeader(),
 				BookingID:       booking.BookingID,
 				CustomerEmail:   booking.CustomerEmail,
 				ShowID:          booking.ShowID,

@@ -8,8 +8,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	commonLog "github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"tickets/entities"
+
+	commonLog "github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 )
 
 type ticketsConfirmationRequest struct {
@@ -21,6 +22,7 @@ type TicketStatusRequest struct {
 	Status        string         `json:"status"`
 	Price         entities.Money `json:"price"`
 	CustomerEmail string         `json:"customer_email"`
+	BookingID     string         `json:"booking_id"`
 }
 
 type TicketsStatusRequest struct {
@@ -52,6 +54,7 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
+				BookingID:     ticket.BookingID,
 			}
 			err = h.eventBus.Publish(ctx, ticketEvent)
 			if err != nil {
@@ -90,7 +93,7 @@ func (h Handler) GetTickets(c echo.Context) error {
 func (h Handler) RefundTicket(c echo.Context) error {
 	ticketID := c.Param("ticket_id")
 	err := h.cmdBus.Send(c.Request().Context(), entities.RefundTicket{
-		Header: entities.NewMessageHeader(),
+		Header:   entities.NewMessageHeader(),
 		TicketID: ticketID,
 	})
 	if err != nil {

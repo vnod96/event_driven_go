@@ -11,4 +11,5 @@ type Handler struct {
 	repo db.TicketRepository
 	showRepo db.ShowRepository
 	bookingRepo db.BookingRepository
+	opsReadModel db.OpsBookingReadModel
 }

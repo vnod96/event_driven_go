@@ -14,9 +14,16 @@ func (h Handler) VoidReceipt(ctx context.Context, event *entities.RefundTicket) 
 		return fmt.Errorf("failed to void receipt: %w", err)
 	}
 
-	return h.paymentService.RefundPayment(ctx, entities.PaymentRefund{
+	err =  h.paymentService.RefundPayment(ctx, entities.PaymentRefund{
 		TicketID: event.TicketID,
 		RefundReason: "voided",
 		IdempotencyKey: event.Header.IdempotencyKey,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to refund payment : %w", err)
+	}
+	return h.eventBus.Publish(ctx, entities.TicketRefunded{
+		Header: event.Header,
+		TicketID: event.TicketID,
 	})
 }
