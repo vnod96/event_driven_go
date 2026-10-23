@@ -7,6 +7,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/labstack/echo/v4"
 	"tickets/db"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func NewHttpRouter(
@@ -45,6 +46,8 @@ func NewHttpRouter(
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "ok")
 	})
+
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	return e
 }

@@ -2,13 +2,16 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"tickets/entities"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type EventRepository interface {
 	Save(ctx context.Context, event *entities.Event, eventName string, payload []byte) error
+	GetEvents(ctx context.Context) ([]DataLakeEvent, error)
 }
 
 type PostgresEventRepository struct {
@@ -26,4 +29,23 @@ func (p *PostgresEventRepository) Save(ctx context.Context, event *entities.Even
 		return err
 	}
 	return nil
+}
+
+type DataLakeEvent struct {
+	EventID      string    `db:"event_id"`
+	PublishedAt  time.Time `db:"published_at"`
+	EventName    string    `db:"event_name"`
+	EventPayload []byte    `db:"event_payload"`
+}
+
+// ...
+
+func (d *PostgresEventRepository) GetEvents(ctx context.Context) ([]DataLakeEvent, error) {
+	var events []DataLakeEvent
+	err := d.db.SelectContext(ctx, &events, "SELECT * FROM events ORDER BY published_at ASC")
+	if err != nil {
+		return nil, fmt.Errorf("could not get events from data lake: %w", err)
+	}
+
+	return events, nil
 }

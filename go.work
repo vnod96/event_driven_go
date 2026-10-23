@@ -1,4 +1,4 @@
-go 1.25.4
+go 1.26.0
 
 use (
 	./02-async/01-goroutines
@@ -30,5 +30,6 @@ use (
 	./14-message-ordering/03-partition-per-entity
 	./14-message-ordering/04-versioning-entities
 	./14-message-ordering/05-independent-updates
+	./19-tracing/01-tracing
 	./project
 )
